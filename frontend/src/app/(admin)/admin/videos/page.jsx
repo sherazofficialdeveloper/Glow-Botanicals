@@ -1,9 +1,9 @@
 // app/(admin)/admin/videos/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Video, Play, Calendar } from 'lucide-react';
+import { Plus, Pencil, Trash2, Play } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { useToast } from '@/hooks/useToast';
@@ -11,12 +11,14 @@ import { adminService } from '@/services/adminService';
 
 export default function AdminVideosPage() {
   const { showToast } = useToast();
+
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
 
   const fetchVideos = async () => {
     setLoading(true);
+
     try {
       const data = await adminService.getVideos();
       setVideos(data);
@@ -27,15 +29,19 @@ export default function AdminVideosPage() {
     }
   };
 
-  useState(() => {
+  // Fetch videos on page load
+  useEffect(() => {
     fetchVideos();
   }, []);
 
   const handleDelete = async (id) => {
     try {
       await adminService.deleteVideo(id);
+
       showToast('Video deleted successfully', 'success');
-      fetchVideos();
+
+      await fetchVideos();
+
       setDeleteId(null);
     } catch (error) {
       showToast('Failed to delete video', 'error');
@@ -48,15 +54,25 @@ export default function AdminVideosPage() {
       label: 'Thumbnail',
       render: (row) => (
         <div className="relative w-24 h-16 rounded-lg overflow-hidden bg-gray-100">
-          <img
-            src={row.thumbnail || '/images/placeholder-video.jpg'}
-            alt={row.title}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = '/images/placeholder-video.jpg';
-            }}
-          />
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          {/* 
+            Show thumbnail ONLY if admin uploaded one.
+            No placeholder image is used.
+          */}
+          {row.thumbnail ? (
+            <img
+              src={row.thumbnail}
+              alt={row.title || 'Video thumbnail'}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // If uploaded thumbnail URL fails,
+                // don't replace it with a placeholder.
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : null}
+
+          {/* Play icon */}
+          <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
             <Play className="w-6 h-6 text-white fill-current" />
           </div>
         </div>
@@ -67,8 +83,15 @@ export default function AdminVideosPage() {
       label: 'Title',
       render: (row) => (
         <div>
-          <div className="font-medium text-gray-900">{row.title}</div>
-          <div className="text-xs text-gray-500 line-clamp-1">{row.description}</div>
+          <div className="font-medium text-gray-900">
+            {row.title}
+          </div>
+
+          {row.description && (
+            <div className="text-xs text-gray-500 line-clamp-1">
+              {row.description}
+            </div>
+          )}
         </div>
       ),
     },
@@ -85,7 +108,10 @@ export default function AdminVideosPage() {
       key: 'status',
       label: 'Status',
       render: (row) => (
-        <Badge variant={row.isActive ? 'success' : 'danger'} size="sm">
+        <Badge
+          variant={row.isActive ? 'success' : 'danger'}
+          size="sm"
+        >
           {row.isActive ? 'Active' : 'Inactive'}
         </Badge>
       ),
@@ -101,6 +127,7 @@ export default function AdminVideosPage() {
           >
             <Pencil className="w-4 h-4" />
           </Link>
+
           <button
             onClick={() => setDeleteId(row._id)}
             className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
@@ -114,11 +141,18 @@ export default function AdminVideosPage() {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Videos</h1>
-          <p className="text-sm text-gray-500">Manage video content</p>
+          <h1 className="text-2xl font-bold text-gray-900">
+            Videos
+          </h1>
+
+          <p className="text-sm text-gray-500">
+            Manage video content
+          </p>
         </div>
+
         <Link
           href="/admin/videos/add"
           className="inline-flex items-center space-x-2 bg-[#d9006c] text-white px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-[#a80052] transition-colors shadow-sm"
@@ -128,6 +162,7 @@ export default function AdminVideosPage() {
         </Link>
       </div>
 
+      {/* Videos Table */}
       <DataTable
         data={videos}
         columns={columns}
@@ -139,10 +174,15 @@ export default function AdminVideosPage() {
       {deleteId && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Video</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">
+              Delete Video
+            </h3>
+
             <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this video? This action cannot be undone.
+              Are you sure you want to delete this video?
+              This action cannot be undone.
             </p>
+
             <div className="flex space-x-3 justify-end">
               <button
                 onClick={() => setDeleteId(null)}
@@ -150,6 +190,7 @@ export default function AdminVideosPage() {
               >
                 Cancel
               </button>
+
               <button
                 onClick={() => handleDelete(deleteId)}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
