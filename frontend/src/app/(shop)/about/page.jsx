@@ -382,7 +382,7 @@ export default function AboutPage() {
           
           <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
             <Link href="/products">
-              <Button className="bg-white text-[#B10258] hover:bg-gray-100 flex items-center space-x-2 px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all">
+              <Button className="bg-white text-pink-800 hover:bg-gray-100 flex items-center space-x-2 px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all">
                 <span>Shop Now</span>
                 <Sparkles className="w-4 h-4 text-[#d9006c]" />
               </Button>
