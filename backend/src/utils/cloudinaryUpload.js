@@ -52,18 +52,59 @@ export const uploadImage = (
 };
 
 // ============================================================
+// UPLOAD VIDEO
+// ============================================================
+
+export const uploadVideo = (
+  buffer,
+  folder = 'glow-botanical/videos'
+) => {
+  return new Promise((resolve, reject) => {
+    if (!buffer) {
+      return reject(new Error('Video buffer is required'));
+    }
+
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'video',
+      },
+      (error, result) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve({ url: result.secure_url, publicId: result.public_id });
+      }
+    );
+
+    stream.end(buffer);
+  });
+};
+
+// ============================================================
 // DELETE IMAGE
 // ============================================================
 
 export const deleteImage =
   async (publicId) => {
+    return deleteAsset(publicId, 'image');
+  };
+
+// ============================================================
+// DELETE CLOUDINARY ASSET
+// ============================================================
+
+export const deleteAsset = async (publicId, resourceType = 'image') => {
     if (!publicId) {
       return;
     }
 
     try {
       await cloudinary.uploader.destroy(
-        publicId
+        publicId,
+        { resource_type: resourceType }
       );
     } catch (error) {
       console.error(

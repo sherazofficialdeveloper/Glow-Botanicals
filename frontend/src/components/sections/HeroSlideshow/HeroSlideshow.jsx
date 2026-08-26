@@ -32,6 +32,13 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
           alt: 'Glowly Botanical Ready 2 White',
           link: '/products',
         },
+        {
+          id: '3',
+          desktopImage: '/image 3.png',
+          mobileImage: '/image-3.png',
+          alt: 'Glowly Botanical Ready 2 White',
+          link: '/products',
+        },
       ];
 
   useEffect(() => {
@@ -44,8 +51,8 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
 
   if (loading) {
     return (
-      <section className="relative w-full bg-white overflow-hidden">
-        <div className="w-full aspect-[16/7] bg-gray-200 animate-pulse"></div>
+      <section className="relative w-full bg-white overflow-hidden min-h-screen">
+        <div className="w-full h-screen bg-gray-200 animate-pulse"></div>
       </section>
     );
   }
@@ -54,9 +61,9 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
   const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
 
   return (
-    <section id="hero" className="relative w-full bg-white overflow-hidden">
-      <div className="relative w-full overflow-hidden">
-        <div className="relative w-full aspect-[16/7] sm:aspect-[16/6] lg:aspect-[16/5.5]">
+    <section id="hero" className="relative w-full bg-white overflow-hidden min-h-screen">
+      <div className="relative w-full h-screen overflow-hidden">
+        <div className="relative w-full h-full">
           {slides.map((slide, idx) => (
             <div
               key={slide.id}
@@ -64,15 +71,26 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
                 idx === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'
               }`}
             >
-              <Link href={slide.link || '#'}>
+              <Link href={slide.link || '#'} className="block w-full h-full">
+                {/* Desktop Image */}
                 <img
                   src={slide.desktopImage}
                   alt={slide.alt}
-                  className="hidden sm:block w-full h-full object-cover max-h-[620px]"
+                  className="hidden md:block w-full h-full object-cover"
                   onError={(e) => {
                     e.target.src = '/images/placeholder-hero.jpg';
                   }}
                 />
+                {/* Tablet Image */}
+                <img
+                  src={slide.mobileImage}
+                  alt={slide.alt}
+                  className="hidden sm:block md:hidden w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.src = '/images/placeholder-hero-tablet.jpg';
+                  }}
+                />
+                {/* Mobile Image */}
                 <img
                   src={slide.mobileImage}
                   alt={slide.alt}
@@ -82,6 +100,8 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
                   }}
                 />
               </Link>
+              
+             
             </div>
           ))}
         </div>
@@ -91,13 +111,15 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
           <>
             <button
               onClick={prevSlide}
-              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/80 hover:bg-white text-gray-800 hover:text-[#d9006c] shadow-md flex items-center justify-center transition-all duration-200"
+              className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 hover:bg-white text-gray-800 hover:text-[#d9006c] shadow-md flex items-center justify-center transition-all duration-200"
+              aria-label="Previous slide"
             >
               <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
             <button
               onClick={nextSlide}
-              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-white/80 hover:bg-white text-gray-800 hover:text-[#d9006c] shadow-md flex items-center justify-center"
+              className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/80 hover:bg-white text-gray-800 hover:text-[#d9006c] shadow-md flex items-center justify-center transition-all duration-200"
+              aria-label="Next slide"
             >
               <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
             </button>
@@ -106,7 +128,7 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
 
         {/* Pagination Dots */}
         {slides.length > 1 && (
-          <div className="absolute bottom-3 sm:bottom-5 left-1/2 -translate-x-1/2 z-20 flex items-center space-x-2">
+          <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center space-x-2">
             {slides.map((_, idx) => (
               <button
                 key={idx}
@@ -114,6 +136,7 @@ export const HeroSlideshow = ({ banners = [], loading = false }) => {
                 className={`h-2.5 rounded-full transition-all duration-300 ${
                   idx === currentSlide ? 'w-8 bg-[#d9006c]' : 'w-2.5 bg-white/80 hover:bg-white shadow-sm'
                 }`}
+                aria-label={`Go to slide ${idx + 1}`}
               />
             ))}
           </div>

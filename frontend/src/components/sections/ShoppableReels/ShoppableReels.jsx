@@ -191,16 +191,31 @@ export const ShoppableReels = ({ reels = [], products = [], onAddToCart, loading
               <X className="w-4 h-4" />
             </button>
             <div className="relative aspect-[9/16] w-full bg-gray-900">
-              <img src={activeReel.thumbnail || activeReel.videoPoster || '/images/placeholder-reel.jpg'} alt={activeReel.title} className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
-                <div className="w-14 h-14 rounded-full bg-white/90 text-[#d9006c] flex items-center justify-center animate-pulse shadow-xl">
-                  <Play className="w-7 h-7 fill-current ml-1" />
+              {activeReel.videoPublicId && activeReel.url ? (
+                <video
+                  src={activeReel.url}
+                  poster={activeReel.thumbnail || '/images/placeholder-reel.jpg'}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <>
+                  <img src={activeReel.thumbnail || activeReel.videoPoster || '/images/placeholder-reel.jpg'} alt={activeReel.title} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                    <div className="w-14 h-14 rounded-full bg-white/90 text-[#d9006c] flex items-center justify-center animate-pulse shadow-xl">
+                      <Play className="w-7 h-7 fill-current ml-1" />
+                    </div>
+                  </div>
+                </>
+              )}
+              {!activeReel.videoPublicId && (
+                <div className="absolute bottom-4 left-4 right-4 text-white">
+                  <p className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">{activeReel.handle}</p>
+                  <h3 className="text-sm font-extrabold mt-0.5">{activeReel.title}</h3>
                 </div>
-              </div>
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">{activeReel.handle}</p>
-                <h3 className="text-sm font-extrabold mt-0.5">{activeReel.title}</h3>
-              </div>
+              )}
             </div>
             <div className="p-4 bg-white border-t border-gray-200 flex items-center justify-between">
               <div>

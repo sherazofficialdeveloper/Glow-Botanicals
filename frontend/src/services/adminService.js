@@ -277,6 +277,14 @@ export const adminService = {
     return response.data.data;
   },
 
+  // Upload a video file and/or its thumbnail to Cloudinary.
+  async uploadVideoAssets(formData) {
+    const response = await api.post('/admin/videos/uploads', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data;
+  },
+
   // Approve review (admin)
   async approveReview(id) {
     const response = await api.put(`/reviews/admin/${id}/approve`);

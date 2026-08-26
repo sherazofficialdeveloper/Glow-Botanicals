@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/useToast';
 import { adminService } from '@/services/adminService';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { VideoUploadFields } from '@/components/admin/VideoUploadFields';
 
 export default function AddVideoPage() {
   const router = useRouter();
@@ -16,7 +17,9 @@ export default function AddVideoPage() {
     title: '',
     description: '',
     url: '',
+    videoPublicId: null,
     thumbnail: '',
+    thumbnailPublicId: null,
     type: 'youtube',
     isActive: true,
     order: 0,
@@ -100,7 +103,7 @@ export default function AddVideoPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Video URL *
+              Video URL
             </label>
             <Input
               name="url"
@@ -122,6 +125,12 @@ export default function AddVideoPage() {
               placeholder="https://example.com/thumbnail.jpg"
             />
           </div>
+
+          <VideoUploadFields
+            formData={formData}
+            setFormData={setFormData}
+            setErrors={setErrors}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

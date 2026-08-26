@@ -7,6 +7,9 @@ import { useToast } from '@/hooks/useToast';
 import { adminService } from '@/services/adminService';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
+import { Upload } from 'lucide-react';
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export default function AddBeforeAfterPage() {
   const router = useRouter();
@@ -22,6 +25,8 @@ export default function AddBeforeAfterPage() {
     order: 0,
   });
   const [errors, setErrors] = useState({});
+  const [uploading, setUploading] = useState({ beforeImage: false, afterImage: false });
+  const isUploading = uploading.beforeImage || uploading.afterImage;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -40,13 +45,44 @@ export default function AddBeforeAfterPage() {
       newErrors.title = 'Title is required';
     }
     if (!formData.beforeImage.trim()) {
-      newErrors.beforeImage = 'Before image URL is required';
+      newErrors.beforeImage = 'Before image URL or upload is required';
     }
     if (!formData.afterImage.trim()) {
-      newErrors.afterImage = 'After image URL is required';
+      newErrors.afterImage = 'After image URL or upload is required';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageUpload = async (field, file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrors((prev) => ({ ...prev, [field]: 'Please select an image file' }));
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setErrors((prev) => ({ ...prev, [field]: 'Image must be 5 MB or smaller' }));
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('images', file);
+    setUploading((prev) => ({ ...prev, [field]: true }));
+
+    try {
+      const [uploaded] = await adminService.uploadBeforeAfterImages(uploadData);
+      if (!uploaded?.url) throw new Error('The image upload did not return a URL');
+
+      setFormData((prev) => ({ ...prev, [field]: uploaded.url }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+      showToast('Image uploaded successfully', 'success');
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Unable to upload image. Please try again.', 'error');
+    } finally {
+      setUploading((prev) => ({ ...prev, [field]: false }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -104,7 +140,7 @@ export default function AddBeforeAfterPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Before Image URL *
+                Before Image URL
               </label>
               <Input
                 name="beforeImage"
@@ -113,6 +149,27 @@ export default function AddBeforeAfterPage() {
                 placeholder="https://example.com/before.jpg"
                 error={errors.beforeImage}
               />
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-400">OR</span>
+                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                  {uploading.beforeImage ? (
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <span>{uploading.beforeImage ? 'Uploading...' : 'Upload image'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading.beforeImage}
+                    onChange={(event) => {
+                      handleImageUpload('beforeImage', event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
               {formData.beforeImage && (
                 <div className="mt-2 w-full h-24 rounded-lg overflow-hidden border border-gray-200">
                   <img
@@ -128,7 +185,7 @@ export default function AddBeforeAfterPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                After Image URL *
+                After Image URL
               </label>
               <Input
                 name="afterImage"
@@ -137,6 +194,27 @@ export default function AddBeforeAfterPage() {
                 placeholder="https://example.com/after.jpg"
                 error={errors.afterImage}
               />
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-400">OR</span>
+                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                  {uploading.afterImage ? (
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <span>{uploading.afterImage ? 'Uploading...' : 'Upload image'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading.afterImage}
+                    onChange={(event) => {
+                      handleImageUpload('afterImage', event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
               {formData.afterImage && (
                 <div className="mt-2 w-full h-24 rounded-lg overflow-hidden border border-gray-200">
                   <img
@@ -196,9 +274,9 @@ export default function AddBeforeAfterPage() {
           <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || isUploading}
             >
-              {loading ? 'Creating...' : 'Create Item'}
+              {loading ? 'Creating...' : isUploading ? 'Uploading image...' : 'Create Item'}
             </Button>
             <Button
               type="button"

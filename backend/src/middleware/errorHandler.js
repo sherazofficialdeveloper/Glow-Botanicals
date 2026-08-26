@@ -18,6 +18,14 @@ export const errorHandler = (err, req, res, next) => {
   let errors = err.errors || null;
   let code = err.code || null;
 
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'Uploaded file is too large'
+      : err.message;
+    code = 'UPLOAD_ERROR';
+  }
+
   // ✅ Handle duplicate key error (MongoDB 11000)
   if (err.code === 11000) {
     statusCode = 409;

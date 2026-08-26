@@ -9,6 +9,14 @@ import multer from 'multer';
 const storage =
   multer.memoryStorage();
 
+const imageMimeTypes = [
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+];
+
 // ============================================================
 // IMAGE FILE FILTER
 // ============================================================
@@ -18,16 +26,8 @@ const fileFilter = (
   file,
   cb
 ) => {
-  const allowedMimeTypes = [
-    'image/jpeg',
-    'image/jpg',
-    'image/png',
-    'image/gif',
-    'image/webp',
-  ];
-
   if (
-    allowedMimeTypes.includes(
+    imageMimeTypes.includes(
       file.mimetype
     )
   ) {
@@ -100,5 +100,45 @@ export const uploadFields = (
     fields
   );
 };
+
+// ============================================================
+// VIDEO + THUMBNAIL UPLOADS
+// ============================================================
+
+const videoUploadFileFilter = (req, file, cb) => {
+  const isVideo = [
+    'video/mp4',
+    'video/webm',
+    'video/quicktime',
+  ].includes(file.mimetype);
+  const isImage = imageMimeTypes.includes(file.mimetype);
+  const expectedType = file.fieldname === 'video' ? isVideo : isImage;
+
+  if (expectedType) {
+    return cb(null, true);
+  }
+
+  const error = new Error(
+    file.fieldname === 'video'
+      ? 'Only MP4, WebM and MOV video files are allowed'
+      : 'Only JPEG, JPG, PNG, GIF and WebP thumbnail images are allowed'
+  );
+  error.statusCode = 400;
+  cb(error);
+};
+
+const videoUpload = multer({
+  storage,
+  fileFilter: videoUploadFileFilter,
+  limits: {
+    fileSize: 100 * 1024 * 1024,
+    files: 2,
+  },
+});
+
+export const uploadVideoFiles = videoUpload.fields([
+  { name: 'video', maxCount: 1 },
+  { name: 'thumbnail', maxCount: 1 },
+]);
 
 export default upload;

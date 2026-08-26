@@ -8,6 +8,7 @@ import { adminService } from '@/services/adminService';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { VideoUploadFields } from '@/components/admin/VideoUploadFields';
 
 export default function EditVideoPage({ params }) {
   const router = useRouter();
@@ -19,7 +20,9 @@ export default function EditVideoPage({ params }) {
     title: '',
     description: '',
     url: '',
+    videoPublicId: null,
     thumbnail: '',
+    thumbnailPublicId: null,
     type: 'youtube',
     isActive: true,
     order: 0,
@@ -34,7 +37,9 @@ export default function EditVideoPage({ params }) {
           title: data.title || '',
           description: data.description || '',
           url: data.url || '',
+          videoPublicId: data.videoPublicId || null,
           thumbnail: data.thumbnail || '',
+          thumbnailPublicId: data.thumbnailPublicId || null,
           type: data.type || 'youtube',
           isActive: data.isActive !== undefined ? data.isActive : true,
           order: data.order || 0,
@@ -134,7 +139,7 @@ export default function EditVideoPage({ params }) {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Video URL *
+              Video URL
             </label>
             <Input
               name="url"
@@ -156,6 +161,12 @@ export default function EditVideoPage({ params }) {
               placeholder="https://example.com/thumbnail.jpg"
             />
           </div>
+
+          <VideoUploadFields
+            formData={formData}
+            setFormData={setFormData}
+            setErrors={setErrors}
+          />
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

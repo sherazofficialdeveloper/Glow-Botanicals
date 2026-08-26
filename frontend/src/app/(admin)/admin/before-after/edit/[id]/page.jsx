@@ -8,6 +8,9 @@ import { adminService } from '@/services/adminService';
 import { Button } from '@/components/common/Button';
 import { Input } from '@/components/common/Input';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
+import { Upload } from 'lucide-react';
+
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 
 export default function EditBeforeAfterPage({ params }) {
   const router = useRouter();
@@ -18,23 +21,25 @@ export default function EditBeforeAfterPage({ params }) {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    before: '',
-    after: '',
+    beforeImage: '',
+    afterImage: '',
     category: '',
     isActive: true,
     order: 0,
   });
   const [errors, setErrors] = useState({});
+  const [uploading, setUploading] = useState({ beforeImage: false, afterImage: false });
+  const isUploading = uploading.beforeImage || uploading.afterImage;
 
   useEffect(() => {
     const fetchItem = async () => {
       try {
-        const data = await adminService.getBeforeAfter(id);
+        const data = await adminService.getBeforeAfterItem(id);
         setFormData({
           title: data.title || '',
           description: data.description || '',
-          before: data.before || '',
-          after: data.after || '',
+          beforeImage: data.beforeImage || '',
+          afterImage: data.afterImage || '',
           category: data.category || '',
           isActive: data.isActive !== undefined ? data.isActive : true,
           order: data.order || 0,
@@ -65,14 +70,45 @@ export default function EditBeforeAfterPage({ params }) {
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required';
     }
-    if (!formData.before.trim()) {
-      newErrors.before = 'Before image URL is required';
+    if (!formData.beforeImage.trim()) {
+      newErrors.beforeImage = 'Before image URL or upload is required';
     }
-    if (!formData.after.trim()) {
-      newErrors.after = 'After image URL is required';
+    if (!formData.afterImage.trim()) {
+      newErrors.afterImage = 'After image URL or upload is required';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleImageUpload = async (field, file) => {
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      setErrors((prev) => ({ ...prev, [field]: 'Please select an image file' }));
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      setErrors((prev) => ({ ...prev, [field]: 'Image must be 5 MB or smaller' }));
+      return;
+    }
+
+    const uploadData = new FormData();
+    uploadData.append('images', file);
+    setUploading((prev) => ({ ...prev, [field]: true }));
+
+    try {
+      const [uploaded] = await adminService.uploadBeforeAfterImages(uploadData);
+      if (!uploaded?.url) throw new Error('The image upload did not return a URL');
+
+      setFormData((prev) => ({ ...prev, [field]: uploaded.url }));
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+      showToast('Image uploaded successfully', 'success');
+    } catch (error) {
+      showToast(error.response?.data?.message || error.message || 'Unable to upload image. Please try again.', 'error');
+    } finally {
+      setUploading((prev) => ({ ...prev, [field]: false }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -138,19 +174,40 @@ export default function EditBeforeAfterPage({ params }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Before Image URL *
+                Before Image URL
               </label>
               <Input
-                name="before"
-                value={formData.before}
+                name="beforeImage"
+                value={formData.beforeImage}
                 onChange={handleChange}
                 placeholder="https://example.com/before.jpg"
-                error={errors.before}
+                error={errors.beforeImage}
               />
-              {formData.before && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-400">OR</span>
+                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                  {uploading.beforeImage ? (
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <span>{uploading.beforeImage ? 'Uploading...' : 'Upload image'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading.beforeImage}
+                    onChange={(event) => {
+                      handleImageUpload('beforeImage', event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+              {formData.beforeImage && (
                 <div className="mt-2 w-full h-24 rounded-lg overflow-hidden border border-gray-200">
                   <img
-                    src={formData.before}
+                    src={formData.beforeImage}
                     alt="Before"
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -162,19 +219,40 @@ export default function EditBeforeAfterPage({ params }) {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                After Image URL *
+                After Image URL
               </label>
               <Input
-                name="after"
-                value={formData.after}
+                name="afterImage"
+                value={formData.afterImage}
                 onChange={handleChange}
                 placeholder="https://example.com/after.jpg"
-                error={errors.after}
+                error={errors.afterImage}
               />
-              {formData.after && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-400">OR</span>
+                <label className="flex items-center gap-2 px-3 py-2 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors text-sm text-gray-600">
+                  {uploading.afterImage ? (
+                    <span className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  <span>{uploading.afterImage ? 'Uploading...' : 'Upload image'}</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploading.afterImage}
+                    onChange={(event) => {
+                      handleImageUpload('afterImage', event.target.files?.[0]);
+                      event.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+              {formData.afterImage && (
                 <div className="mt-2 w-full h-24 rounded-lg overflow-hidden border border-gray-200">
                   <img
-                    src={formData.after}
+                    src={formData.afterImage}
                     alt="After"
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -230,9 +308,9 @@ export default function EditBeforeAfterPage({ params }) {
           <div className="flex items-center space-x-3 pt-4 border-t border-gray-100">
             <Button
               type="submit"
-              disabled={loading}
+              disabled={loading || isUploading}
             >
-              {loading ? 'Updating...' : 'Update Item'}
+              {loading ? 'Updating...' : isUploading ? 'Uploading image...' : 'Update Item'}
             </Button>
             <Button
               type="button"
