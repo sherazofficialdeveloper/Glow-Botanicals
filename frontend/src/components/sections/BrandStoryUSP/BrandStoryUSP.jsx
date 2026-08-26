@@ -82,7 +82,7 @@ export const BrandStoryUSP = ({ className = '' }) => {
                 
                 {/* Main Product Image */}
                 <img
-                  src={imageError ? '/images/placeholder-product.png' : '/images/brand-story-image.jpg'}
+                  src={imageError ? '/WhatsApp_Image_2025-09-06_at_12.08.36_AM.jpg' : '/WhatsApp_Image_2025-09-06_at_12.08.36_AM.jpg'}
                   alt="Glow Botanicals 3-Minute Glow"
                   className="w-full h-auto rounded-2xl object-cover"
                   onError={() => setImageError(true)}

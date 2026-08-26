@@ -109,7 +109,7 @@ export const Header = ({
             <img
               src="/logo.jpeg"
               alt="Glowly Botanical"
-              className="h-10 sm:h-12 md:h-14 w-auto object-contain"
+              className="h-10 sm:h-12 md:h-28 w-auto object-contain"
               onError={(e) => {
                 e.target.src = '/images/logo-placeholder.png';
               }}

@@ -73,7 +73,7 @@ export const Footer = () => {
             <img
               src="/logo.jpeg"
               alt="Glowly Botanical"
-              className="h-12 w-auto object-contain"
+              className="h-32 w-auto object-contain"
               onError={(e) => {
                 e.target.src = '/images/logo-placeholder.png';
               }}

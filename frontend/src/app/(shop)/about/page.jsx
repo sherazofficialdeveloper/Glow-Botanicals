@@ -230,7 +230,7 @@ export default function AboutPage() {
             <div className="bg-gradient-to-br from-rose-50 to-amber-50 rounded-3xl p-4 border border-rose-100 shadow-xl">
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#d9006c]/10 to-[#d4af37]/10 flex items-center justify-center">
                 <img
-                  src="/images/about-image.jpg"
+                  src="/WhatsApp_Image_2025-09-06_at_12.08.36_AM.jpg"
                   alt="About Glowly Botanical"
                   className="w-full h-full object-cover"
                   onError={(e) => {
@@ -382,7 +382,7 @@ export default function AboutPage() {
           
           <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
             <Link href="/products">
-              <Button className="bg-white text-[#d9006c] hover:bg-gray-100 flex items-center space-x-2 px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all">
+              <Button className="bg-white text-[#B10258] hover:bg-gray-100 flex items-center space-x-2 px-8 py-3 text-base shadow-lg hover:shadow-xl transition-all">
                 <span>Shop Now</span>
                 <Sparkles className="w-4 h-4 text-[#d9006c]" />
               </Button>
