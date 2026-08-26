@@ -1,0 +1,34 @@
+// backend/src/services/index.js
+export * from './authService.js';
+export * from './userService.js';
+export * from './productService.js';
+export * from './orderService.js';
+export * from './cartService.js';
+export * from './wishlistService.js';
+export * from './reviewService.js';
+export * from './emailService.js';
+export * from './paymentService.js';
+export * from './analyticsService.js';
+export * from './storageService.js';
+export * from './couponService.js';
+export * from './adminService.js';
+export * from './categoryService.js';
+export * from './bannerService.js';
+export * from './videoService.js';
+
+export { default as authService } from './authService.js';
+export { default as userService } from './userService.js';
+export { default as productService } from './productService.js';
+export { default as orderService } from './orderService.js';
+export { default as cartService } from './cartService.js';
+export { default as wishlistService } from './wishlistService.js';
+export { default as reviewService } from './reviewService.js';
+export { default as emailService } from './emailService.js';
+export { default as paymentService } from './paymentService.js';
+export { default as analyticsService } from './analyticsService.js';
+export { default as storageService } from './storageService.js';
+export { default as couponService } from './couponService.js';
+export { default as adminService } from './adminService.js';
+export { default as categoryService } from './categoryService.js';
+export { default as bannerService } from './bannerService.js';
+export { default as videoService } from './videoService.js';
