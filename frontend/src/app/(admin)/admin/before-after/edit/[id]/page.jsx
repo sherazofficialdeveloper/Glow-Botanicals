@@ -19,11 +19,9 @@ export default function EditBeforeAfterPage({ params }) {
   const [loading, setLoading] = useState(false);
   const [fetchLoading, setFetchLoading] = useState(true);
   const [formData, setFormData] = useState({
-    title: '',
     description: '',
     beforeImage: '',
     afterImage: '',
-    category: '',
     isActive: true,
     order: 0,
   });
@@ -36,11 +34,9 @@ export default function EditBeforeAfterPage({ params }) {
       try {
         const data = await adminService.getBeforeAfterItem(id);
         setFormData({
-          title: data.title || '',
           description: data.description || '',
           beforeImage: data.beforeImage || '',
           afterImage: data.afterImage || '',
-          category: data.category || '',
           isActive: data.isActive !== undefined ? data.isActive : true,
           order: data.order || 0,
         });
@@ -67,8 +63,8 @@ export default function EditBeforeAfterPage({ params }) {
 
   const validate = () => {
     const newErrors = {};
-    if (!formData.title.trim()) {
-      newErrors.title = 'Title is required';
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
     }
     if (!formData.beforeImage.trim()) {
       newErrors.beforeImage = 'Before image URL or upload is required';
@@ -144,22 +140,10 @@ export default function EditBeforeAfterPage({ params }) {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 max-w-2xl">
         <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Title *
-            </label>
-            <Input
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              placeholder="e.g., Skin Transformation"
-              error={errors.title}
-            />
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Description
+              Description *
             </label>
             <textarea
               name="description"
@@ -264,17 +248,6 @@ export default function EditBeforeAfterPage({ params }) {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Category
-            </label>
-            <Input
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              placeholder="e.g., Skincare, Haircare"
-            />
-          </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

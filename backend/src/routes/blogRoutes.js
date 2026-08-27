@@ -12,11 +12,13 @@ import {
   createPost,
   updatePost,
   deletePost,
+  uploadFeaturedImage,
 } from '../controllers/blogController.js';
 import auth from '../middleware/auth.js';
 import admin from '../middleware/admin.js';
 import { validate, commonValidations } from '../middleware/validate.js';
 import { body } from 'express-validator';
+import { uploadSingle } from '../middleware/upload.js';
 
 const router = express.Router();
 
@@ -25,6 +27,8 @@ const router = express.Router();
 // ============================================================
 
 router.get('/admin', auth, admin, getAdminPosts);
+
+router.post('/admin/image', auth, admin, uploadSingle('image'), uploadFeaturedImage);
 
 router.post(
   '/admin',

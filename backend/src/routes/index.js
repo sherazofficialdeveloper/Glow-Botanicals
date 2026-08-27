@@ -38,6 +38,7 @@ router.use('/faqs', faqRoutes);
 // Public read-only endpoints for homepage content
 router.get('/banners', getPublicBanners);
 router.get('/reels', getReels);
+router.use('/before-after', beforeAfterRoutes);
 
 router.use('/users', auth, userRoutes);
 router.use('/orders', auth, orderRoutes);

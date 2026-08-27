@@ -1,12 +1,11 @@
 // app/(admin)/admin/before-after/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Plus, Pencil, Trash2, Image, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { useToast } from '@/hooks/useToast';
 import { adminService } from '@/services/adminService';
 
@@ -28,7 +27,7 @@ export default function AdminBeforeAfterPage() {
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchItems();
   }, []);
 
@@ -51,35 +50,28 @@ export default function AdminBeforeAfterPage() {
         <div className="flex items-center space-x-2">
           <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100">
             <img
-              src={row.before || '/images/placeholder-before.jpg'}
+              src={row.beforeImage}
               alt="Before"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = '/images/placeholder-before.jpg';
-              }}
             />
           </div>
           <span className="text-xs text-gray-400">→</span>
           <div className="w-16 h-12 rounded-lg overflow-hidden bg-gray-100">
             <img
-              src={row.after || '/images/placeholder-after.jpg'}
+              src={row.afterImage}
               alt="After"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = '/images/placeholder-after.jpg';
-              }}
             />
           </div>
         </div>
       ),
     },
     {
-      key: 'title',
-      label: 'Title',
+      key: 'description',
+      label: 'Description',
       render: (row) => (
         <div>
-          <div className="font-medium text-gray-900">{row.title}</div>
-          <div className="text-xs text-gray-500 line-clamp-1">{row.description}</div>
+          <div className="font-medium text-gray-900">{row.description}</div>
         </div>
       ),
     },

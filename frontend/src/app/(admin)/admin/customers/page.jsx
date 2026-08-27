@@ -1,7 +1,7 @@
 // app/(admin)/admin/customers/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Eye, Mail, Phone, Calendar } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
@@ -35,13 +35,13 @@ export default function AdminCustomersPage() {
         limit: data.limit,
       });
     } catch (error) {
-      showToast('Failed to load customers', 'error');
+      showToast(error.response?.data?.message || error.message || 'Failed to load customers', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchCustomers();
   }, [page, search]);
 

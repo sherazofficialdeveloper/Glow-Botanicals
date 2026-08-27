@@ -55,8 +55,8 @@ export const getBeforeAfterItemById = async (req, res, next) => {
 
 export const createBeforeAfterItem = async (req, res, next) => {
   try {
-    const { beforeImage, afterImage, description } = req.body;
-    const item = new BeforeAfter({ beforeImage, afterImage, description });
+    const { beforeImage, afterImage, description, isActive, order } = req.body;
+    const item = new BeforeAfter({ beforeImage, afterImage, description, isActive, order });
     await item.save();
     res.status(201).json({
       success: true,
@@ -75,10 +75,12 @@ export const updateBeforeAfterItem = async (req, res, next) => {
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
-    const { beforeImage, afterImage, description } = req.body;
+    const { beforeImage, afterImage, description, isActive, order } = req.body;
     item.beforeImage = beforeImage || item.beforeImage;
     item.afterImage = afterImage || item.afterImage;
     item.description = description || item.description;
+    if (typeof isActive === 'boolean') item.isActive = isActive;
+    if (order !== undefined) item.order = order;
     await item.save();
     res.json({
       success: true,

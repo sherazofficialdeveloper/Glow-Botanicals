@@ -2,6 +2,7 @@
 
 import BlogPost from '../models/BlogPost.js';
 import { slugify } from '../utils/helpers.js';
+import { uploadImage } from '../utils/cloudinaryUpload.js';
 
 // GET /blog - public, paginated, optional search/category
 export const getPosts = async (req, res, next) => {
@@ -217,6 +218,20 @@ export const deletePost = async (req, res, next) => {
     }
     await post.deleteOne();
     res.json({ success: true, message: 'Blog post deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// POST /blog/admin/image - admin
+export const uploadFeaturedImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Featured image is required' });
+    }
+
+    const image = await uploadImage(req.file.buffer, 'glow-botanical/blogs');
+    res.status(201).json({ success: true, data: { image } });
   } catch (error) {
     next(error);
   }

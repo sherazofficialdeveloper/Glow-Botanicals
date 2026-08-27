@@ -1,6 +1,32 @@
 // frontend/src/services/adminService.js
 import { api } from './api';
 
+const hasValue = (value) => value !== undefined && value !== null && value !== '';
+
+const toCouponPayload = (data) => {
+  const payload = {
+    code: data.code,
+    type: data.type,
+    value: data.value ?? data.discount,
+    minPurchase: data.minPurchase ?? data.minOrder,
+    isActive: data.isActive,
+  };
+
+  if (hasValue(data.maxDiscount)) payload.maxDiscount = data.maxDiscount;
+  if (hasValue(data.maxUses ?? data.usageLimit)) payload.maxUses = data.maxUses ?? data.usageLimit;
+  if (hasValue(data.expiresAt ?? data.expiryDate)) payload.expiresAt = data.expiresAt ?? data.expiryDate;
+
+  return payload;
+};
+
+const fromCouponPayload = (coupon) => ({
+  ...coupon,
+  discount: coupon.value,
+  minOrder: coupon.minPurchase,
+  usageLimit: coupon.maxUses,
+  expiryDate: coupon.expiresAt,
+});
+
 export const adminService = {
   // ============================================================
   // DASHBOARD
@@ -107,6 +133,35 @@ export const adminService = {
   },
 
   // ============================================================
+  // CUSTOMERS
+  // ============================================================
+
+  async getCustomers(params = {}) {
+    const response = await api.get('/admin/users', {
+      params: { ...params, role: 'customer' },
+    });
+    const { users, pagination } = response.data.data;
+    return {
+      items: users,
+      page: pagination.page,
+      total: pagination.total,
+      totalPages: pagination.pages,
+      limit: pagination.limit,
+    };
+  },
+
+  async getCustomer(id) {
+    const response = await api.get(`/admin/users/${id}`);
+    const { user, orderStats, recentOrders } = response.data.data;
+    return {
+      ...user,
+      orderCount: orderStats.totalOrders,
+      totalSpent: orderStats.totalSpent,
+      lastOrderDate: recentOrders[0]?.createdAt || null,
+      recentOrders,
+    };
+  },
+  // ============================================================
   // CATEGORIES
   // ============================================================
 
@@ -188,6 +243,34 @@ export const adminService = {
   },
 
   // ============================================================
+  // FAQS
+  // ============================================================
+
+  async getFAQs(params = {}) {
+    const response = await api.get('/faqs/admin', { params });
+    return response.data.data.items;
+  },
+
+  async getFAQ(id) {
+    const response = await api.get(`/faqs/${id}`);
+    return response.data.data;
+  },
+
+  async createFAQ(data) {
+    const response = await api.post('/faqs', data);
+    return response.data.data;
+  },
+
+  async updateFAQ(id, data) {
+    const response = await api.put(`/faqs/${id}`, data);
+    return response.data.data;
+  },
+
+  async deleteFAQ(id) {
+    const response = await api.delete(`/faqs/${id}`);
+    return response.data;
+  },
+  // ============================================================
   // VIDEOS
   // ============================================================
 
@@ -222,31 +305,66 @@ export const adminService = {
   },
 
   // ============================================================
+  // BLOGS
+  // ============================================================
+
+  async getBlogs() {
+    const response = await api.get('/blog/admin');
+    return response.data.data.items;
+  },
+
+  async getBlog(id) {
+    const response = await api.get(`/blog/id/${id}`);
+    return response.data.data;
+  },
+
+  async createBlog(data) {
+    const response = await api.post('/blog/admin', data);
+    return response.data.data;
+  },
+
+  async updateBlog(id, data) {
+    const response = await api.put(`/blog/admin/${id}`, data);
+    return response.data.data;
+  },
+
+  async deleteBlog(id) {
+    const response = await api.delete(`/blog/admin/${id}`);
+    return response.data;
+  },
+
+  async uploadBlogImage(formData) {
+    const response = await api.post('/blog/admin/image', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data.data.image;
+  },
+  // ============================================================
   // COUPONS
   // ============================================================
 
   // Get all coupons (admin)
   async getCoupons() {
     const response = await api.get('/coupons/admin');
-    return response.data.data.items;
+    return response.data.data.items.map(fromCouponPayload);
   },
 
   // Get single coupon (admin)
   async getCoupon(id) {
     const response = await api.get(`/coupons/admin/${id}`);
-    return response.data.data.coupon;
+    return fromCouponPayload(response.data.data.coupon);
   },
 
   // Create coupon (admin)
   async createCoupon(data) {
-    const response = await api.post('/coupons/admin', data);
-    return response.data.data.coupon;
+    const response = await api.post('/coupons/admin', toCouponPayload(data));
+    return fromCouponPayload(response.data.data.coupon);
   },
 
   // Update coupon (admin)
   async updateCoupon(id, data) {
-    const response = await api.put(`/coupons/admin/${id}`, data);
-    return response.data.data.coupon;
+    const response = await api.put(`/coupons/admin/${id}`, toCouponPayload(data));
+    return fromCouponPayload(response.data.data.coupon);
   },
 
   // Delete coupon (admin)

@@ -73,13 +73,13 @@ export default function AddCouponPage() {
         ...formData,
         discount: parseFloat(formData.discount),
         minOrder: formData.minOrder ? parseFloat(formData.minOrder) : 0,
-        maxDiscount: formData.maxDiscount ? parseFloat(formData.maxDiscount) : 0,
-        usageLimit: formData.usageLimit ? parseInt(formData.usageLimit) : 0,
+        maxDiscount: formData.maxDiscount === '' ? undefined : parseFloat(formData.maxDiscount),
+        usageLimit: formData.usageLimit === '' ? undefined : parseInt(formData.usageLimit),
       });
       showToast('Coupon created successfully!', 'success');
       router.push('/admin/coupons');
     } catch (error) {
-      showToast(error.message || 'Failed to create coupon', 'error');
+      showToast(error.response?.data?.errors?.[0]?.message || error.response?.data?.message || error.message || 'Failed to create coupon', 'error');
     } finally {
       setLoading(false);
     }

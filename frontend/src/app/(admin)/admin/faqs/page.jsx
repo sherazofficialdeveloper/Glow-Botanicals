@@ -1,27 +1,41 @@
 // app/(admin)/admin/faqs/page.jsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Plus, Pencil, Trash2, GripVertical, Search } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { useToast } from '@/hooks/useToast';
 import { adminService } from '@/services/adminService';
-import { useFAQ } from '@/hooks/useFAQ';
 
 export default function AdminFAQsPage() {
   const { showToast } = useToast();
-  const { faqs, loading, refetch } = useFAQ();
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const fetchFAQs = async () => {
+    setLoading(true);
+    try {
+      const data = await adminService.getFAQs();
+      setFaqs(data || []);
+    } catch (error) {
+      showToast('Failed to load FAQs', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFAQs();
+  }, []);
 
   const handleDelete = async (id) => {
     try {
       await adminService.deleteFAQ(id);
       showToast('FAQ deleted successfully', 'success');
-      refetch();
+      fetchFAQs();
       setDeleteId(null);
     } catch (error) {
       showToast('Failed to delete FAQ', 'error');
@@ -55,6 +69,15 @@ export default function AdminFAQsPage() {
       render: (row) => (
         <Badge variant="secondary" size="sm">
           {row.category || 'General'}
+        </Badge>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row) => (
+        <Badge variant={row.isActive ? 'success' : 'danger'} size="sm">
+          {row.isActive ? 'Active' : 'Inactive'}
         </Badge>
       ),
     },

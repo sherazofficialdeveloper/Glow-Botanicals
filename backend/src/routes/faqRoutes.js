@@ -3,6 +3,7 @@
 import express from 'express';
 import {
   getFAQs,
+  getAdminFAQs,
   getFAQById,
   createFAQ,
   updateFAQ,
@@ -17,6 +18,7 @@ const router = express.Router();
 
 // Public
 router.get('/', getFAQs);
+router.get('/admin', auth, admin, getAdminFAQs);
 router.get('/:id', validate([commonValidations.id('id')]), getFAQById);
 
 // Admin

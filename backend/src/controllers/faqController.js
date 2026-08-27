@@ -2,8 +2,22 @@
 
 import FAQ from '../models/FAQ.js';
 
-// GET /faqs - public (also used by the admin FAQ list, which reads everything it needs from this)
+// GET /faqs - public
 export const getFAQs = async (req, res, next) => {
+  try {
+    const filter = { isActive: true };
+    if (req.query.category) {
+      filter.category = req.query.category;
+    }
+    const items = await FAQ.find(filter).sort({ order: 1, createdAt: 1 });
+    res.json({ success: true, data: { items } });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// GET /faqs/admin - admin
+export const getAdminFAQs = async (req, res, next) => {
   try {
     const filter = {};
     if (req.query.category) {

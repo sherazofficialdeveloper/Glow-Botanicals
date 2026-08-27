@@ -101,6 +101,8 @@ export const AdminSidebar = () => {
         { label: 'Before/After', path: '/admin/before-after' },
         { label: 'Videos', path: '/admin/videos' },
         { label: 'Reviews', path: '/admin/reviews' },
+        { label: 'FAQs', path: '/admin/faqs' },
+        { label: 'Blog', path: '/admin/blogs' },
       ],
     },
     {

@@ -57,7 +57,7 @@ router.post(
     body('code').notEmpty().withMessage('Coupon code is required'),
     body('type').isIn(['percentage', 'fixed']).withMessage('Invalid coupon type'),
     body('value').isFloat({ min: 0 }).withMessage('Value must be a positive number'),
-    body('expiresAt').isISO8601().withMessage('Valid expiry date is required'),
+    body('expiresAt').optional({ nullable: true, checkFalsy: true }).isISO8601().withMessage('Valid expiry date is required'),
   ]),
   createCoupon
 );

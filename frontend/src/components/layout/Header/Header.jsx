@@ -107,7 +107,7 @@ export const Header = ({
             className="flex items-center space-x-2 group flex-shrink-0"
           >
             <img
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="Glowly Botanical"
               className="h-10 sm:h-12 md:h-28 w-auto object-contain"
               onError={(e) => {

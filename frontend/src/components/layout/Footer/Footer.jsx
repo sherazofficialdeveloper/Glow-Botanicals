@@ -45,9 +45,6 @@ export const Footer = () => {
   const helpLinks = [
     { label: 'Privacy Policy', path: '/privacy-policy' },
     { label: 'Terms of Service', path: '/terms' },
-    { label: 'Shipping Policy', path: '/shipping-policy' },
-    { label: 'Return Policy', path: '/return-policy' },
-    { label: 'Track Order', path: '/track-order' },
   ];
 
   const socialLinks = [
@@ -71,7 +68,7 @@ export const Footer = () => {
           {/* Column 1: Brand Info */}
           <div className="lg:col-span-4 space-y-4">
             <img
-              src="/logo.jpeg"
+              src="/logo.png"
               alt="Glowly Botanical"
               className="h-32 w-auto object-contain"
               onError={(e) => {

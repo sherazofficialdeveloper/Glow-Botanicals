@@ -22,6 +22,7 @@ import { LiveReviewStream } from '@/components/sections/LiveReviewStream';
 import { TrustBadges } from '@/components/sections/TrustBadges';
 import { FAQSection } from '@/components/sections/FAQSection';
 
+
 export default function HomePage() {
   const { products, loading: productsLoading } = useFeaturedProducts(8);
   const { reviews, loading: reviewsLoading } = useReviews({ limit: 10, approved: true });
@@ -45,8 +46,6 @@ export default function HomePage() {
       {/* 2. Brand Story & USP */}
       <BrandStoryUSP />
 
-      {/* 3. Trust Badges */}
-      <TrustBadges />
 
       {/* 4. Featured Products */}
       <ProductGrid
@@ -106,8 +105,10 @@ export default function HomePage() {
       {/* 10. Live Review Stream */}
       <LiveReviewStream reviews={reviews} loading={reviewsLoading} />
 
-      {/* 11. FAQ Section */}
+      {/* FAQs */}
       <FAQSection faqs={faqs} loading={faqsLoading} />
+      {/* 3. Trust Badges */}
+      <TrustBadges />
     </main>
   );
 }
