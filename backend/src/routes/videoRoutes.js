@@ -7,11 +7,12 @@ import {
   createVideo,
   updateVideo,
   deleteVideo,
-  uploadVideoAssets,
+  uploadReelVideoAsset,
+  uploadReelThumbnailAsset,
 } from '../controllers/videoController.js';
 import { admin } from '../middleware/admin.js';
 import { validate, commonValidations } from '../middleware/validate.js';
-import { uploadVideoFiles } from '../config/multer.js';
+import { uploadReelThumbnail, uploadReelVideo } from '../config/multer.js';
 import { body } from 'express-validator';
 
 const router = express.Router();
@@ -20,7 +21,8 @@ const router = express.Router();
 router.get('/', admin, getVideos);
 router.get('/:id', admin, validate([commonValidations.id('id')]), getVideoById);
 
-router.post('/uploads', admin, uploadVideoFiles, uploadVideoAssets);
+router.post('/uploads/video', admin, uploadReelVideo, uploadReelVideoAsset);
+router.post('/uploads/thumbnail', admin, uploadReelThumbnail, uploadReelThumbnailAsset);
 
 router.post(
   '/',
@@ -30,6 +32,8 @@ router.post(
     body('description').optional({ checkFalsy: true }).isLength({ max: 500 }).trim(),
     body('url').notEmpty().withMessage('Video URL is required').isURL().withMessage('Please enter a valid URL'),
     body('videoPublicId').optional({ checkFalsy: true }).isString(),
+    body('sourceType').optional().isIn(['upload', 'direct', 'instagram']).withMessage('Invalid reel source type'),
+    body('videoStoragePath').optional({ checkFalsy: true }).isString(),
     body('thumbnail').optional({ checkFalsy: true }).isURL().withMessage('Please enter a valid thumbnail URL'),
     body('thumbnailPublicId').optional({ checkFalsy: true }).isString(),
     body('type').notEmpty().withMessage('Video type is required').isIn(['youtube', 'vimeo', 'instagram', 'custom']).withMessage('Invalid video type'),
@@ -49,6 +53,8 @@ router.put(
     body('description').optional({ checkFalsy: true }).isLength({ max: 500 }).trim(),
     body('url').optional().isURL().withMessage('Please enter a valid URL'),
     body('videoPublicId').optional({ checkFalsy: true }).isString(),
+    body('sourceType').optional().isIn(['upload', 'direct', 'instagram']).withMessage('Invalid reel source type'),
+    body('videoStoragePath').optional({ checkFalsy: true }).isString(),
     body('thumbnail').optional({ checkFalsy: true }).isURL().withMessage('Please enter a valid thumbnail URL'),
     body('thumbnailPublicId').optional({ checkFalsy: true }).isString(),
     body('type').optional().isIn(['youtube', 'vimeo', 'instagram', 'custom']).withMessage('Invalid video type'),

@@ -7,58 +7,28 @@ import {
   uploadImage,
   uploadVideo,
 } from '../utils/cloudinaryUpload.js';
+import { deleteReelVideo, uploadReelVideo } from '../utils/supabaseVideoStorage.js';
 
-export const uploadVideoAssets = async (req, res, next) => {
-  let uploadedVideo;
-  let uploadedThumbnail;
-
+export const uploadReelVideoAsset = async (req, res, next) => {
   try {
-    const videoFile = req.files?.video?.[0];
-    const thumbnailFile = req.files?.thumbnail?.[0];
-
-    if (!videoFile && !thumbnailFile) {
-      return res.status(400).json({
-        success: false,
-        message: 'Select a video file or thumbnail image to upload',
-      });
-    }
-
-    if (thumbnailFile && thumbnailFile.size > 5 * 1024 * 1024) {
-      return res.status(400).json({
-        success: false,
-        message: 'Thumbnail images must be 5MB or smaller',
-      });
-    }
-
-    if (videoFile) {
-      uploadedVideo = await uploadVideo(videoFile.buffer);
-    }
-
-    if (thumbnailFile) {
-      uploadedThumbnail = await uploadImage(
-        thumbnailFile.buffer,
-        'glow-botanical/videos/thumbnails'
-      );
-    }
-
-    res.status(201).json({
-      success: true,
-      data: {
-        ...(uploadedVideo && { video: uploadedVideo }),
-        ...(uploadedThumbnail && { thumbnail: uploadedThumbnail }),
-      },
-    });
+    if (!req.file) return res.status(400).json({ success: false, message: 'Select a video file to upload' });
+    console.info('Reel video received', { field: req.file.fieldname, filename: req.file.originalname, mimeType: req.file.mimetype, size: req.file.size, bufferExists: Boolean(req.file.buffer), bufferLength: req.file.buffer?.length });
+    const video = await uploadReelVideo(req.file);
+    res.status(201).json({ success: true, data: { video } });
   } catch (error) {
-    await Promise.all([
-      uploadedVideo && deleteAsset(uploadedVideo.publicId, 'video'),
-      uploadedThumbnail && deleteImage(uploadedThumbnail.publicId),
-    ]).catch((cleanupError) => {
-      console.error('Failed to clean up video upload:', cleanupError);
-    });
     next(error);
   }
 };
 
+export const uploadReelThumbnailAsset = async (req, res, next) => {
+  try {
+    if (!req.file) return res.status(400).json({ success: false, message: 'Select a thumbnail image to upload' });
+    const thumbnail = await uploadImage(req.file.buffer, 'glow-botanical/videos/thumbnails');
+    res.status(201).json({ success: true, data: { thumbnail } });
+  } catch (error) {
+    next(error);
+  }
+};
 export const getVideos = async (req, res, next) => {
   try {
     const videos = await Video.find().sort({ order: 1, createdAt: -1 });
@@ -91,13 +61,15 @@ export const createVideo = async (req, res, next) => {
   try {
     const {
       title, description, url, videoPublicId, thumbnail, thumbnailPublicId,
-      type, productId, order, isActive,
+      type, sourceType, videoStoragePath, productId, order, isActive,
     } = req.body;
     const video = new Video({
       title,
       description,
       url,
       videoPublicId: videoPublicId || null,
+      sourceType: sourceType || (videoStoragePath ? 'upload' : type === 'instagram' ? 'instagram' : 'direct'),
+      videoStoragePath: videoStoragePath || null,
       thumbnail,
       thumbnailPublicId: thumbnailPublicId || null,
       type,
@@ -125,29 +97,43 @@ export const updateVideo = async (req, res, next) => {
     }
     const {
       title, description, url, videoPublicId, thumbnail, thumbnailPublicId,
-      type, productId, order, isActive,
+      type, sourceType, videoStoragePath, productId, order, isActive,
     } = req.body;
     const previousVideoPublicId = video.videoPublicId;
+    const previousVideoStoragePath = video.videoStoragePath;
     const previousThumbnailPublicId = video.thumbnailPublicId;
-    const isReplacingVideo = url !== undefined && url !== video.url;
+    const previousType = video.type;
+    const normalizedUrl = url !== undefined && url !== '' ? url : video.url;
+    const isReplacingVideo = normalizedUrl !== video.url;
     const isReplacingThumbnail = thumbnail !== undefined && thumbnail !== video.thumbnail;
 
     video.title = title || video.title;
     video.description = description !== undefined ? description : video.description;
-    video.url = url || video.url;
+    video.url = normalizedUrl;
     video.thumbnail = thumbnail !== undefined ? thumbnail : video.thumbnail;
-    if (isReplacingVideo) video.videoPublicId = videoPublicId || null;
-    if (isReplacingThumbnail) video.thumbnailPublicId = thumbnailPublicId || null;
+    if (isReplacingVideo) {
+      video.videoPublicId = videoPublicId || null;
+      video.sourceType = sourceType || (videoStoragePath ? 'upload' : type === 'instagram' ? 'instagram' : 'direct');
+      video.videoStoragePath = videoStoragePath || null;
+    }
+    if (isReplacingThumbnail) {
+      video.thumbnail = thumbnail;
+      video.thumbnailPublicId = thumbnailPublicId !== previousThumbnailPublicId
+        ? thumbnailPublicId
+        : null;
+    }
     video.type = type || video.type;
+    if (type && type !== previousType && !isReplacingVideo) {
+      video.sourceType = sourceType || (type === 'instagram' ? 'instagram' : type === 'custom' ? 'upload' : 'direct');
+    }
     video.productId = productId !== undefined ? (productId || null) : video.productId;
     video.order = order !== undefined ? order : video.order;
     video.isActive = isActive !== undefined ? isActive : video.isActive;
     await video.save();
 
     await Promise.all([
-      isReplacingVideo && previousVideoPublicId && previousVideoPublicId !== video.videoPublicId
-        ? deleteAsset(previousVideoPublicId, 'video')
-        : null,
+      // Supabase objects are intentionally retained on replacement until a reference-aware cleanup job is added.
+      null,
       isReplacingThumbnail && previousThumbnailPublicId && previousThumbnailPublicId !== video.thumbnailPublicId
         ? deleteImage(previousThumbnailPublicId)
         : null,
@@ -173,7 +159,8 @@ export const deleteVideo = async (req, res, next) => {
     }
     await video.deleteOne();
     await Promise.all([
-      deleteAsset(video.videoPublicId, 'video'),
+      // Keep Supabase objects on delete until a reference-aware cleanup job is available.
+      null,
       deleteImage(video.thumbnailPublicId),
     ]).catch((cleanupError) => {
       console.error('Failed to delete video assets:', cleanupError);
@@ -190,7 +177,9 @@ export const deleteVideo = async (req, res, next) => {
 // Public: active "reels" for the homepage Shoppable Reels carousel
 export const getReels = async (req, res, next) => {
   try {
-    const items = await Video.find({ isActive: true }).sort({ order: 1, createdAt: -1 });
+    const items = await Video.find({ isActive: true })
+      .populate('productId', 'name price originalPrice images discount')
+      .sort({ order: 1, createdAt: -1 });
     res.json({
       success: true,
       data: { items },

@@ -131,14 +131,24 @@ const videoUpload = multer({
   storage,
   fileFilter: videoUploadFileFilter,
   limits: {
-    fileSize: 100 * 1024 * 1024,
-    files: 2,
+    fileSize: 50 * 1024 * 1024,
+    files: 1,
   },
 });
 
-export const uploadVideoFiles = videoUpload.fields([
-  { name: 'video', maxCount: 1 },
-  { name: 'thumbnail', maxCount: 1 },
-]);
+// Keep the two reel asset uploads independent. A thumbnail upload must not be
+// parsed as, or depend on, a video upload.
+export const uploadReelVideo = videoUpload.single('video');
+
+const thumbnailUpload = multer({
+  storage,
+  fileFilter: videoUploadFileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+    files: 1,
+  },
+});
+
+export const uploadReelThumbnail = thumbnailUpload.single('thumbnail');
 
 export default upload;

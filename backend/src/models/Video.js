@@ -23,6 +23,15 @@ const videoSchema = new mongoose.Schema(
       type: String,
       default: null,
     },
+    sourceType: {
+      type: String,
+      enum: ['upload', 'direct', 'instagram'],
+      default: 'direct',
+    },
+    videoStoragePath: {
+      type: String,
+      default: null,
+    },
     thumbnail: {
       type: String,
       default: '',

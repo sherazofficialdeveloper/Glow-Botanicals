@@ -1,693 +1,334 @@
-
-// frontend/src/components/sections/ShoppableReels.jsx
-'use client';
-
-import { useState, useRef, useEffect } from 'react';
+"use client";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Play,
   Instagram,
-  X,
+  Play,
   ShoppingBag,
   Volume2,
   VolumeX,
-} from 'lucide-react';
+  X,
+} from "lucide-react";
+import {
+  getInstagramReelId,
+  getYouTubeVideoId,
+  getMediaType,
+  getReelUrl,
+} from "@/utils/reelMedia";
 
+const price = (value) =>
+  value == null ? "" : `Rs ${Number(value).toLocaleString()}`;
+const YouTubeEmbed = ({ url, title }) => {
+  const id = getYouTubeVideoId(url);
+  return id ? <iframe title={title || "YouTube video"} src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}`} className="w-full h-full border-0" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen /> : null;
+};const InstagramEmbed = ({ url, title, compact = false }) => {
+  const id = getInstagramReelId(url);
+  return id ? (
+    <iframe
+      title={title || "Instagram Reel"}
+      src={`https://www.instagram.com/reel/${id}/embed/captioned/`}
+      className="w-full h-full border-0"
+      scrolling="no"
+      allow="encrypted-media"
+    />
+  ) : null;
+};
+function Video({ reel, className, videoRef, onPlaying, onPause }) {
+  return (
+    <video
+      ref={videoRef}
+      src={getReelUrl(reel)}
+      poster={reel.thumbnail || undefined}
+      muted
+      autoPlay
+      playsInline
+      loop
+      preload="auto"
+      className={className}
+      onCanPlay={(e) => {
+        e.currentTarget.muted = true;
+        e.currentTarget.play().catch(() => {});
+      }}
+      onPlaying={onPlaying}
+      onPause={onPause}
+    />
+  );
+}
+function ReelCard({ reel, product, onOpen }) {
+  const ref = useRef(null);
+  const media = getMediaType(
+    getReelUrl(reel),
+    reel.type || reel.platform,
+    reel.videoPublicId,
+    reel.sourceType,
+  );
+  useEffect(() => {
+    if (media !== "video") return;
+    let tries = 0;
+    let timer;
+    const play = () => {
+      const video = ref.current;
+      if (!video) return;
+      video.muted = true;
+      video.play().catch(() => {
+        if (tries++ < 12) timer = setTimeout(play, 300);
+      });
+    };
+    play();
+    return () => clearTimeout(timer);
+  }, [media, reel._id, reel.url, reel.videoUrl]);
+  return (
+    <button
+      type="button"
+      onClick={() => onOpen(reel)}
+      className="flex-shrink-0 w-[200px] sm:w-[220px] lg:w-[230px] text-left bg-white rounded-xl border overflow-hidden shadow-sm hover:shadow-lg"
+    >
+      <div className="relative aspect-[3/4.2] bg-gray-100 overflow-hidden">
+        {media === "video" ? (
+          <Video
+            reel={reel}
+            videoRef={ref}
+            className="w-full h-full object-cover pointer-events-none"
+          />
+        ) : media === "instagram" ? (
+          <div className="w-full h-full pointer-events-none">
+            <InstagramEmbed url={getReelUrl(reel)} title={reel.title} />
+          </div>
+        ) : media === "youtube" ? (
+          <div className="w-full h-full pointer-events-none"><YouTubeEmbed url={getReelUrl(reel)} title={reel.title} /></div>
+        ) : reel.thumbnail ? (
+          <img
+            src={reel.thumbnail}
+            alt={reel.title || "Reel"}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full grid place-items-center text-gray-400">
+            Unavailable
+          </div>
+        )}
+        <div className="absolute inset-0 pointer-events-none grid place-items-center bg-black/10">
+          <span className="w-10 h-10 rounded-full bg-white/90 text-[#d9006c] grid place-items-center">
+            <Play className="w-4 h-4 fill-current" />
+          </span>
+        </div>
+        {product && (
+          <img
+            src={product.images?.[0] || "/images/placeholder.png"}
+            alt=""
+            className="absolute left-2 bottom-2 w-9 h-9 p-0.5 bg-white rounded object-contain"
+          />
+        )}
+      </div>
+      <div className="p-3">
+        <p className="font-bold text-sm truncate">
+          {product?.name || "Product unavailable"}
+        </p>
+        <p className="text-[#bd002a] font-bold text-xs">
+          {price(product?.price)}{" "}
+          {product?.originalPrice && (
+            <span className="ml-1 text-gray-400 line-through font-normal">
+              {price(product.originalPrice)}
+            </span>
+          )}
+        </p>
+      </div>
+    </button>
+  );
+}
 export const ShoppableReels = ({
   reels = [],
   products = [],
   onAddToCart,
   loading = false,
 }) => {
-  const [activeReel, setActiveReel] = useState(null);
-  const [isMuted, setIsMuted] = useState(true);
-  const [isVideoReady, setIsVideoReady] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-
-  const modalVideoRef = useRef(null);
-
-  /*
-   * ---------------------------------------------------------
-   * Find product attached to reel
-   * ---------------------------------------------------------
-   */
-  const getProductForReel = (reel) => {
-    if (reel?.productId && products.length > 0) {
-      const found = products.find(
-        (product) =>
-          String(product._id) === String(reel.productId)
-      );
-
-      if (found) {
-        return found;
-      }
-    }
-
-    return products.length > 0 ? products[0] : null;
+  const [active, setActive] = useState(null);
+  const [muted, setMuted] = useState(true);
+  const [playing, setPlaying] = useState(false);
+  const row = useRef(null),
+    drag = useRef({ active: false, moved: false, x: 0, scroll: 0 });
+  const modalVideo = useRef(null);
+  const ordered = useMemo(
+    () =>
+      [...reels].sort(
+        (a, b) =>
+          (a.order ?? a.displayOrder ?? 0) - (b.order ?? b.displayOrder ?? 0),
+      ),
+    [reels],
+  );
+  const productFor = (reel) => {
+    const linked = reel.productId?._id ? reel.productId : reel.product;
+    const id = linked?._id || reel.productId;
+    return linked?.name
+      ? linked
+      : products.find((p) => String(p._id) === String(id)) || null;
   };
-
-  /*
-   * ---------------------------------------------------------
-   * Format price
-   * ---------------------------------------------------------
-   */
-  const formatPrice = (price) => {
-    if (!price) {
-      return 'Rs 1,999.00';
-    }
-
-    return `Rs ${Math.round(price * 100).toLocaleString()}.00`;
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Reset modal video state
-   * ---------------------------------------------------------
-   */
+  const media =
+    active &&
+    getMediaType(
+      getReelUrl(active),
+      active.type || active.platform,
+      active.videoPublicId,
+      active.sourceType,
+    );
   useEffect(() => {
-    setIsMuted(true);
-    setIsVideoReady(false);
-    setIsPlaying(false);
-  }, [activeReel]);
-
-  /*
-   * ---------------------------------------------------------
-   * Modal video autoplay
-   * ---------------------------------------------------------
-   */
-  useEffect(() => {
-    if (!activeReel) return;
-
-    let timer;
-    let attempts = 0;
-
-    const playModalVideo = () => {
-      const video = modalVideoRef.current;
-
-      if (!video) {
-        if (attempts < 20) {
-          attempts += 1;
-          timer = setTimeout(playModalVideo, 100);
-        }
-
-        return;
-      }
-
+    if (media !== "video") return;
+    const video = modalVideo.current;
+    if (video) {
       video.muted = true;
-      video.defaultMuted = true;
-      video.playsInline = true;
-
       video
         .play()
-        .then(() => {
-          setIsPlaying(true);
-          setIsVideoReady(true);
-        })
-        .catch((error) => {
-          console.log('Modal autoplay blocked:', error);
-          setIsPlaying(false);
-        });
-    };
-
-    timer = setTimeout(playModalVideo, 100);
-
-    return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
-    };
-  }, [activeReel]);
-
-  /*
-   * ---------------------------------------------------------
-   * Modal video can play
-   * ---------------------------------------------------------
-   */
-  const handleModalCanPlay = (event) => {
-    const video = event.currentTarget;
-
-    setIsVideoReady(true);
-
-    video.muted = true;
-
-    video
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-      })
-      .catch((error) => {
-        console.log('Modal canPlay autoplay blocked:', error);
-        setIsPlaying(false);
-      });
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Modal video playing
-   * ---------------------------------------------------------
-   */
-  const handleModalPlaying = () => {
-    setIsPlaying(true);
-    setIsVideoReady(true);
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Modal video paused
-   * ---------------------------------------------------------
-   */
-  const handleModalPause = () => {
-    setIsPlaying(false);
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Manual modal play
-   * ---------------------------------------------------------
-   */
-  const handleVideoClick = async () => {
-    const video = modalVideoRef.current;
-
-    if (!video) return;
-
-    try {
-      if (video.paused) {
-        await video.play();
-        setIsPlaying(true);
-        setIsVideoReady(true);
-      }
-    } catch (error) {
-      console.log('Manual play failed:', error);
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
     }
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Toggle modal mute
-   * ---------------------------------------------------------
-   */
-  const toggleMute = (event) => {
-    event.stopPropagation();
-
-    const video = modalVideoRef.current;
-
-    if (!video) return;
-
-    const nextMuted = !video.muted;
-
-    video.muted = nextMuted;
-    setIsMuted(nextMuted);
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Close modal
-   * ---------------------------------------------------------
-   */
-  const closeModal = () => {
-    const video = modalVideoRef.current;
-
-    if (video) {
-      video.pause();
-    }
-
-    setActiveReel(null);
-    setIsVideoReady(false);
-    setIsPlaying(false);
-    setIsMuted(true);
-  };
-
-  /*
-   * ---------------------------------------------------------
-   * Escape key
-   * ---------------------------------------------------------
-   */
-  useEffect(() => {
-    if (!activeReel) return;
-
-    const handleEscape = (event) => {
-      if (event.key === 'Escape') {
-        closeModal();
-      }
-    };
-
-    document.addEventListener('keydown', handleEscape);
-
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-    };
-  }, [activeReel]);
-
-  /*
-   * ---------------------------------------------------------
-   * Lock background scroll while modal is open
-   * ---------------------------------------------------------
-   */
-  useEffect(() => {
-    if (!activeReel) return;
-
-    const originalOverflow = document.body.style.overflow;
-
-    document.body.style.overflow = 'hidden';
-
-    return () => {
-      document.body.style.overflow = originalOverflow;
-    };
-  }, [activeReel]);
-
-  /*
-   * ---------------------------------------------------------
-   * Loading state
-   * ---------------------------------------------------------
-   */
-  if (loading) {
+  }, [active, media]);
+  if (loading)
     return (
-      <section className="py-12 sm:py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="flex justify-center items-center min-h-[200px]">
-            <div className="w-8 h-8 border-4 border-[#d9006c] border-t-transparent rounded-full animate-spin" />
-          </div>
-        </div>
+      <section className="py-12 bg-white">
+        <div className="w-8 h-8 mx-auto border-4 border-[#d9006c] border-t-transparent rounded-full animate-spin" />
       </section>
     );
-  }
-
-  /*
-   * ---------------------------------------------------------
-   * No reels
-   * ---------------------------------------------------------
-   */
-  if (!reels || reels.length === 0) {
-    return null;
-  }
-
-  /*
-   * ---------------------------------------------------------
-   * Reel Card
-   *
-   * IMPORTANT:
-   * The video itself is now rendered on the homepage.
-   * It does NOT require the user to click the card.
-   * ---------------------------------------------------------
-   */
-  const ReelCard = ({ reel, mobile = false }) => {
-    const product = getProductForReel(reel);
-    const cardVideoRef = useRef(null);
-
-    const discountPercent = 19;
-
-    const formattedPrice = formatPrice(product?.price);
-
-    const formattedOldPrice = formatPrice(
-      product?.originalPrice ||
-        (product?.price ? product.price * 1.3 : null)
-    );
-
-    /*
-     * -------------------------------------------------------
-     * Card video autoplay
-     * -------------------------------------------------------
-     */
-    useEffect(() => {
-      const video = cardVideoRef.current;
-
-      if (!video) return;
-
-      let timer;
-      let attempts = 0;
-
-      const playVideo = () => {
-        const currentVideo = cardVideoRef.current;
-
-        if (!currentVideo) return;
-
-        currentVideo.muted = true;
-        currentVideo.defaultMuted = true;
-        currentVideo.playsInline = true;
-
-        currentVideo
-          .play()
-          .catch((error) => {
-            console.log(
-              'Reel card autoplay attempt failed:',
-              error
-            );
-
-            /*
-             * Retry a few times because the video may not
-             * have enough data immediately after rendering.
-             */
-            if (attempts < 15) {
-              attempts += 1;
-              timer = setTimeout(playVideo, 300);
-            }
-          });
-      };
-
-      /*
-       * Start shortly after the video element mounts.
-       */
-      timer = setTimeout(playVideo, 100);
-
-      /*
-       * Also try when enough video data is available.
-       */
-      const handleCanPlay = () => {
-        const currentVideo = cardVideoRef.current;
-
-        if (!currentVideo) return;
-
-        currentVideo.muted = true;
-
-        currentVideo
-          .play()
-          .catch(() => {});
-      };
-
-      video.addEventListener(
-        'canplay',
-        handleCanPlay
-      );
-
-      return () => {
-        clearTimeout(timer);
-
-        video.removeEventListener(
-          'canplay',
-          handleCanPlay
-        );
-
-        video.pause();
-      };
-    }, [reel._id, reel.url, reel.videoUrl]);
-
-    const videoUrl = reel.url || reel.videoUrl;
-
-    return (
-      <div
-        key={reel._id}
-        onClick={() => setActiveReel(reel)}
-        className={
-          mobile
-            ? 'flex-shrink-0 w-[200px] bg-white rounded-xl border border-gray-300/90 shadow-sm hover:shadow-lg hover:border-gray-400 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer'
-            : 'bg-white rounded-xl border border-gray-300/90 shadow-sm hover:shadow-lg hover:border-gray-400 transition-all duration-300 overflow-hidden flex flex-col group cursor-pointer'
-        }
-      >
-        <div className="relative aspect-[3/4.2] w-full overflow-hidden bg-gray-100">
-
-          {/* Discount */}
-          <div className="absolute top-0 left-0 z-20 bg-[#bd002a] text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-br-md shadow-xs">
-            {discountPercent}% OFF
-          </div>
-
-          {/* ------------------------------------------------
-              Actual Reel Video
-              
-              Thumbnail is ONLY used as poster when uploaded.
-              If no thumbnail exists, there is NO placeholder.
-              ------------------------------------------------ */}
-          {videoUrl ? (
-            <video
-              ref={cardVideoRef}
-              src={videoUrl}
-              {...(reel.thumbnail
-                ? { poster: reel.thumbnail }
-                : {})}
-              muted
-              autoPlay
-              playsInline
-              loop
-              preload="auto"
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : reel.thumbnail ? (
-            /*
-             * If there is no video URL but thumbnail exists,
-             * show the uploaded thumbnail.
-             */
-            <img
-              src={reel.thumbnail}
-              alt={
-                reel.title ||
-                'Instagram Reel'
-              }
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            />
-          ) : (
-            /*
-             * No video and no thumbnail:
-             * intentionally show nothing/blank background.
-             */
-            <div className="w-full h-full bg-gray-100" />
-          )}
-
-          {/* Play Icon */}
-          <div className="absolute inset-0 bg-black/10 group-hover:bg-black/25 transition-colors flex items-center justify-center pointer-events-none">
-            <div className="w-10 h-10 rounded-full bg-white/90 text-[#d9006c] flex items-center justify-center shadow-md group-hover:scale-110 transition-transform">
-              <Play className="w-4 h-4 fill-current ml-0.5" />
-            </div>
-          </div>
-
-          {/* Product Image */}
-          {product && (
-            <div className="absolute bottom-2 left-2 z-20 bg-white/95 border border-gray-200 rounded-md p-0.5 shadow-xs w-8 h-8 sm:w-9 sm:h-9 flex items-center justify-center overflow-hidden">
-              <img
-                src={
-                  product.images?.[0] ||
-                  '/images/placeholder.png'
-                }
-                alt={product.name}
-                className="w-full h-full object-contain"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Product Info */}
-        <div className="p-3 bg-white border-t border-gray-200/80 flex flex-col space-y-1">
-          <h4 className="text-xs sm:text-sm font-bold text-gray-800 line-clamp-1 group-hover:text-[#d9006c] transition-colors">
-            {product?.name || 'Glowly Product'}
-          </h4>
-
-          <div className="flex items-center space-x-1.5 text-xs">
-            <span className="font-extrabold text-[#bd002a]">
-              {formattedPrice}
-            </span>
-
-            <span className="text-gray-400 line-through text-[11px] font-medium">
-              {formattedOldPrice}
-            </span>
-          </div>
-        </div>
-      </div>
-    );
+  if (!ordered.length) return null;
+  const stop = () => {
+    drag.current.active = false;
+    row.current?.classList.remove("is-dragging");
   };
-
   return (
-    <section
-      id="instagram-reels"
-      className="py-12 sm:py-16 bg-white"
-    >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-        {/* Section Header */}
-        <div className="text-center max-w-xl mx-auto mb-8 sm:mb-10">
-          <div className="inline-flex items-center space-x-2 bg-rose-50 text-[#d9006c] px-3.5 py-1 rounded-full text-xs font-bold tracking-widest uppercase mb-2 border border-rose-100">
-            <Instagram className="w-3.5 h-3.5 text-[#d9006c]" />
-            <span>@GlowlyAngel</span>
-          </div>
-
-          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-gray-900 tracking-tight">
+    <section id="instagram-reels" className="py-12 sm:py-16 bg-white">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center mb-8">
+          <span className="inline-flex gap-2 text-[#d9006c] text-xs font-bold">
+            <Instagram className="w-4" />
+            @GlowlyAngel
+          </span>
+          <h2 className="text-2xl sm:text-3xl font-extrabold">
             Follow On Instagram
           </h2>
         </div>
-
-        {/* ------------------------------------------------
-            Desktop - 5 Column Grid
-            ------------------------------------------------ */}
-        <div className="hidden sm:grid sm:grid-cols-3 lg:grid-cols-5 gap-3.5 sm:gap-4">
-          {reels.slice(0, 5).map((reel) => (
+        <div
+          ref={row}
+          className="reels-drag-scroll flex flex-nowrap gap-3 sm:gap-4 overflow-x-auto overflow-y-hidden pb-4 hide-scrollbar"
+          onMouseDown={(e) => {
+            if (e.button !== 0) return;
+            drag.current = {
+              active: true,
+              moved: false,
+              x: e.pageX,
+              scroll: row.current.scrollLeft,
+            };
+            row.current.classList.add("is-dragging");
+          }}
+          onMouseMove={(e) => {
+            if (!drag.current.active) return;
+            const d = e.pageX - drag.current.x;
+            if (Math.abs(d) > 5) drag.current.moved = true;
+            row.current.scrollLeft = drag.current.scroll - d;
+          }}
+          onMouseUp={stop}
+          onMouseLeave={stop}
+        >
+          {ordered.map((reel) => (
             <ReelCard
               key={reel._id}
               reel={reel}
-            />
-          ))}
-        </div>
-
-        {/* ------------------------------------------------
-            Mobile - Horizontal Scroll
-            ------------------------------------------------ */}
-        <div className="sm:hidden flex flex-nowrap gap-3 overflow-x-auto pb-4 hide-scrollbar">
-          {reels.slice(0, 5).map((reel) => (
-            <ReelCard
-              key={reel._id}
-              reel={reel}
-              mobile
+              product={productFor(reel)}
+              onOpen={(item) => {
+                if (!drag.current.moved) setActive(item);
+                drag.current.moved = false;
+              }}
             />
           ))}
         </div>
       </div>
-
-      {/* ------------------------------------------------
-          Reel Modal
-          ------------------------------------------------ */}
-      {activeReel && (
+      {active && (
         <div
-          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) {
-              closeModal();
-            }
-          }}
+          className="fixed inset-0 z-50 p-4 bg-black/80 flex items-center justify-center"
+          onClick={(e) => e.target === e.currentTarget && setActive(null)}
         >
-          <div className="relative bg-white rounded-2xl max-w-sm w-full overflow-hidden shadow-2xl border border-gray-200">
-
-            {/* Close Button */}
+          <div className="relative max-w-sm w-full bg-white rounded-2xl overflow-hidden">
             <button
-              onClick={closeModal}
-              className="absolute top-3 right-3 z-20 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black transition-colors"
-              aria-label="Close reel"
+              onClick={() => {
+                modalVideo.current?.pause();
+                setActive(null);
+              }}
+              className="absolute z-10 top-3 right-3 bg-black/60 text-white rounded-full p-2"
             >
               <X className="w-4 h-4" />
             </button>
-
-            {/* Video Player */}
-            <div
-              className="relative aspect-[9/16] w-full bg-black cursor-pointer"
-              onClick={handleVideoClick}
-            >
-              <video
-                key={activeReel._id}
-                ref={modalVideoRef}
-                src={
-                  activeReel.url ||
-                  activeReel.videoUrl
-                }
-                {...(activeReel.thumbnail
-                  ? {
-                      poster:
-                        activeReel.thumbnail,
-                    }
-                  : {})}
-                muted={isMuted}
-                autoPlay
-                playsInline
-                loop
-                preload="auto"
-                className="w-full h-full object-cover"
-                onCanPlay={handleModalCanPlay}
-                onPlaying={handleModalPlaying}
-                onPause={handleModalPause}
-              />
-
-              {/* Play Button */}
-              {!isPlaying && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none">
-                  <div className="w-16 h-16 rounded-full bg-white/90 text-[#d9006c] flex items-center justify-center shadow-xl">
-                    <Play className="w-7 h-7 fill-current ml-1" />
-                  </div>
+            <div className="relative aspect-[9/16] bg-black">
+              {media === "instagram" ? (
+                <InstagramEmbed url={getReelUrl(active)} title={active.title} />
+              ) : media === "youtube" ? (
+                <YouTubeEmbed url={getReelUrl(active)} title={active.title} />
+              ) : media === "video" ? (
+                <Video
+                  reel={active}
+                  videoRef={modalVideo}
+                  className="w-full h-full object-cover"
+                  onPlaying={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
+                />
+              ) : (
+                <div className="text-white grid place-items-center h-full">
+                  Video unavailable
                 </div>
               )}
-
-              {/* Mute / Unmute */}
-              <button
-                onClick={toggleMute}
-                className="absolute bottom-20 right-3 z-20 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
-                aria-label={
-                  isMuted
-                    ? 'Unmute video'
-                    : 'Mute video'
-                }
-              >
-                {isMuted ? (
-                  <VolumeX className="w-4 h-4" />
-                ) : (
-                  <Volume2 className="w-4 h-4" />
-                )}
-              </button>
-
-              {/* Overlay Info */}
-              <div className="absolute bottom-4 left-4 right-4 text-white pointer-events-none">
-                <p className="text-xs font-bold uppercase tracking-wider text-[#d4af37]">
-                  {activeReel.handle ||
-                    '@glowlyangel'}
-                </p>
-
-                <h3 className="text-sm font-extrabold mt-0.5">
-                  {activeReel.title}
-                </h3>
-              </div>
-            </div>
-
-            {/* Product CTA */}
-            <div className="p-4 bg-white border-t border-gray-200 flex items-center justify-between">
-
-              <div>
-                <p className="text-xs font-extrabold text-gray-900 truncate max-w-[170px]">
-                  {getProductForReel(
-                    activeReel
-                  )?.name ||
-                    'Glowly Product'}
-                </p>
-
-                <span className="text-sm font-extrabold text-[#bd002a]">
-                  {formatPrice(
-                    getProductForReel(
-                      activeReel
-                    )?.price
+              {media === "video" && (
+                <button
+                  onClick={() => {
+                    const v = modalVideo.current;
+                    v.muted = !v.muted;
+                    setMuted(v.muted);
+                  }}
+                  className="absolute bottom-3 right-3 bg-black/50 text-white rounded-full p-2"
+                >
+                  {muted ? (
+                    <VolumeX className="w-4 h-4" />
+                  ) : (
+                    <Volume2 className="w-4 h-4" />
                   )}
-                </span>
+                </button>
+              )}
+            </div>
+            <div className="p-4 flex justify-between items-center">
+              <div>
+                <p className="font-bold text-sm">
+                  {productFor(active)?.name || "Product unavailable"}
+                </p>
+                <p className="text-[#bd002a] font-bold">
+                  {price(productFor(active)?.price)}
+                </p>
               </div>
-
               <button
+                disabled={!productFor(active)}
                 onClick={() => {
-                  const product =
-                    getProductForReel(
-                      activeReel
-                    );
-
-                  if (
-                    product &&
-                    onAddToCart
-                  ) {
-                    onAddToCart(product);
-                  }
-
-                  closeModal();
+                  const p = productFor(active);
+                  if (p) onAddToCart?.(p);
+                  setActive(null);
                 }}
-                className="bg-[#d9006c] text-white px-4 py-2 rounded-full font-extrabold text-xs uppercase tracking-wider hover:bg-[#a80052] transition-colors flex items-center space-x-1.5"
+                className="bg-[#d9006c] disabled:bg-gray-300 text-white px-4 py-2 rounded-full text-xs font-bold flex gap-1"
               >
-                <ShoppingBag className="w-3.5 h-3.5" />
-                <span>Buy Now</span>
+                <ShoppingBag className="w-4" />
+                Buy Now
               </button>
             </div>
           </div>
         </div>
       )}
-
       <style jsx>{`
         .hide-scrollbar::-webkit-scrollbar {
           display: none;
         }
-
         .hide-scrollbar {
           scrollbar-width: none;
-          -ms-overflow-style: none;
         }
-
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95);
-          }
-
-          to {
-            opacity: 1;
-            transform: scale(1);
-          }
+        .reels-drag-scroll {
+          cursor: grab;
+          touch-action: pan-x;
+          user-select: none;
         }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease-out;
+        .reels-drag-scroll.is-dragging {
+          cursor: grabbing;
+          scroll-behavior: auto;
         }
       `}</style>
     </section>

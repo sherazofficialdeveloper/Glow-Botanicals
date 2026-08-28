@@ -395,10 +395,20 @@ export const adminService = {
     return response.data.data;
   },
 
-  // Upload a video file and/or its thumbnail to Cloudinary.
-  async uploadVideoAssets(formData) {
-    const response = await api.post('/admin/videos/uploads', formData, {
+  // Video binaries go to Supabase through the backend; thumbnails retain the
+  // existing Cloudinary image upload path.
+  async uploadVideoAsset(formData) {
+    const response = await api.post('/admin/videos/uploads/video', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 180000,
+    });
+    return response.data.data;
+  },
+
+  async uploadVideoThumbnail(formData) {
+    const response = await api.post('/admin/videos/uploads/thumbnail', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 180000,
     });
     return response.data.data;
   },
