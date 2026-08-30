@@ -2,7 +2,7 @@
   "name": "CutiesGlow-backend",
   "version": "1.0.0",
   "type": "module",
-  "description": "CutiesGlow by Razias - Backend API",
+  "description": "Glow Botanical - Backend API",
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",

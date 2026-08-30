@@ -58,7 +58,7 @@ export const ProductDetails = ({
       if (navigator.share) {
         await navigator.share({
           title: product.name,
-          text: `Check out ${product.name} on Glowly Botanical!`,
+          text: `Check out ${product.name} on Glow  Botanical!`,
           url: url,
         });
       } else {

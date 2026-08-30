@@ -26,7 +26,7 @@ const wrap = (title, bodyHtml) => `
     <div class="card">
       <div class="header"><h1>${title}</h1></div>
       <div class="content">${bodyHtml}</div>
-      <div class="footer">© ${year()} CutiesGlow by Razias. All rights reserved.</div>
+      <div class="footer">© ${year()} Glow Botanical. All rights reserved.</div>
     </div>
   </div>
 </body>
@@ -46,7 +46,7 @@ export const passwordResetOtpTemplate = (user, otp) => ({
       </div>
       <p>This OTP will expire in <strong>10 minutes</strong>.</p>
       <p>If you did not request a password reset, you can safely ignore this email.</p>
-      <p>— The CutiesGlow Team</p>
+      <p>— The Glow BotanicalTeam</p>
     `
   ),
 });
@@ -57,12 +57,12 @@ export const welcomeEmailTemplate = (user) => ({
     '✨ Welcome to CutiesGlow!',
     `
       <h2>Hi ${user.name},</h2>
-      <p>Thank you for joining the CutiesGlow family!</p>
+      <p>Thank you for joining the Glow Botanicalfamily!</p>
       <p>Use code <strong>WELCOME10</strong> to get 10% off your first order.</p>
       <p style="text-align: center; margin: 30px 0;">
         <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" class="button">Start Shopping</a>
       </p>
-      <p>— The CutiesGlow Team</p>
+      <p>— The Glow BotanicalTeam</p>
     `
   ),
 });
@@ -77,7 +77,7 @@ export const orderConfirmationTemplate = (order, user) => ({
       <p><strong>Order:</strong> ${order.orderNumber || order._id}</p>
       <p><strong>Total:</strong> $${Number(order.total || 0).toFixed(2)}</p>
       <p><strong>Payment:</strong> ${order.paymentMethod}</p>
-      <p>— The CutiesGlow Team</p>
+      <p>— The Glow BotanicalTeam</p>
     `
   ),
 });
@@ -91,13 +91,13 @@ export const paymentVerifiedTemplate = (order, user) => ({
       <p>Your payment has been verified and your order is now being processed.</p>
       <p><strong>Order:</strong> ${order.orderNumber || order._id}</p>
       <p><strong>Total:</strong> $${Number(order.total || 0).toFixed(2)}</p>
-      <p>— The CutiesGlow Team</p>
+      <p>— The Glow BotanicalTeam</p>
     `
   ),
 });
 
 export const passwordResetLinkTemplate = (user, resetUrl) => ({
-  subject: 'Reset your CutiesGlow password',
+  subject: 'Reset your Glow Botanicalpassword',
   html: wrap(
     'Password Reset',
     `
@@ -107,6 +107,45 @@ export const passwordResetLinkTemplate = (user, resetUrl) => ({
         <a href="${resetUrl}" class="button">Reset Password</a>
       </p>
       <p>If you did not request this, you can ignore this email.</p>
+    `
+  ),
+});
+
+export const loginNotificationTemplate = (user) => ({
+  subject: 'New Login to Your Account',
+  html: wrap(
+    'New Login',
+    `
+      <h2>Hi ${user.name || 'there'},</h2>
+      <p>A new login to your account was successful on ${new Date().toLocaleString()}.</p>
+      <p>If this was not you, please secure your account immediately.</p>
+      <p>— The Glow Botanical Team</p>
+    `
+  ),
+});
+
+export const favoriteAddedTemplate = (user, product) => ({
+  subject: 'Item Added to Your Favorites',
+  html: wrap(
+    'Added to Favorites',
+    `
+      <h2>Hi ${user.name || 'there'},</h2>
+      <p><strong>${product.name}</strong> was added to your favorites.</p>
+      <p>— The Glow Botanical Team</p>
+    `
+  ),
+});
+
+export const orderCompletedTemplate = (order, user) => ({
+  subject: `Your Order Has Been Completed #${order.orderNumber || order._id}`,
+  html: wrap(
+    'Order Completed',
+    `
+      <h2>Hi ${user?.name || order.customerName || 'there'},</h2>
+      <p>Your order has been completed.</p>
+      <p><strong>Order:</strong> ${order.orderNumber || order._id}</p>
+      <p><strong>Total:</strong> $${Number(order.total || 0).toFixed(2)}</p>
+      <p>— The Glow Botanical Team</p>
     `
   ),
 });

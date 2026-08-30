@@ -20,7 +20,7 @@ export default function TermsPage() {
 
         <h2>1. Acceptance of Terms</h2>
         <p>
-          By using Glowly Botanical's website and services, you agree to these terms of service. 
+          By using Glow  Botanical's website and services, you agree to these terms of service. 
           If you do not agree, please do not use our services.
         </p>
 
@@ -56,12 +56,12 @@ export default function TermsPage() {
         <h2>6. Intellectual Property</h2>
         <p>
           All content on this website, including text, images, and logos, is the property of 
-          Glowly Botanical and protected by copyright laws.
+          Glow  Botanical and protected by copyright laws.
         </p>
 
         <h2>7. Limitation of Liability</h2>
         <p>
-          Glowly Botanical is not liable for any indirect, incidental, or consequential 
+          Glow  Botanical is not liable for any indirect, incidental, or consequential 
           damages arising from the use of our products or services.
         </p>
 
@@ -69,7 +69,7 @@ export default function TermsPage() {
         <p>
           Questions about these terms? Contact us at:
           <br />
-          <strong>Email:</strong> legal@glowlybotanical.com
+          <strong>Email:</strong> legal@Glow botanical.com
         </p>
       </div>
     </Container>

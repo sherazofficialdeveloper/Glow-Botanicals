@@ -23,8 +23,8 @@ export default function RootLayout({ children }) {
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#d9006c" />
-        <title>Glowly Botanical - Luxury Skincare & Beauty</title>
-        <meta name="description" content="Discover Glowly Botanical - premium skincare and beauty products." />
+        <title>Glow  Botanical - Luxury Skincare & Beauty</title>
+        <meta name="description" content="Discover Glow  Botanical - premium skincare and beauty products." />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link 

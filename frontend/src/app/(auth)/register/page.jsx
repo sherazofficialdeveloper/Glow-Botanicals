@@ -132,7 +132,7 @@ export default function RegisterPage() {
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Create Account</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Join Glowly Botanical and start your glow journey
+          Join Glow  Botanical and start your glow journey
         </p>
       </div>
 
@@ -162,7 +162,7 @@ export default function RegisterPage() {
           type="email"
           value={formData.email}
           onChange={handleChange}
-          placeholder="hello@glowlybotanical.com"
+          placeholder="hello@Glow botanical.com"
           error={errors.email}
           icon={<Mail className="w-4 h-4 text-gray-400" />}
           required

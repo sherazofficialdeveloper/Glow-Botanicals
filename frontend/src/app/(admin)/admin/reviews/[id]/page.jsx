@@ -19,12 +19,14 @@ export default function AdminReviewDetailPage({ params }) {
   const [review, setReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [formData, setFormData] = useState({ name: '', email: '', rating: 5, text: '' });
 
   useEffect(() => {
     const fetchReview = async () => {
       try {
-        const data = await reviewService.getReview(id);
+        const data = await reviewService.getAdminReview(id);
         setReview(data);
+        setFormData({ name: data.name || '', email: data.email || '', rating: data.rating || 5, text: data.text || '' });
       } catch (error) {
         showToast('Failed to load review', 'error');
         router.push('/admin/reviews');
@@ -61,6 +63,27 @@ export default function AdminReviewDetailPage({ params }) {
     }
   };
 
+  const handleEditChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((current) => ({ ...current, [name]: value }));
+  };
+
+  const handleSave = async (event) => {
+    event.preventDefault();
+    setUpdating(true);
+    try {
+      const updated = await reviewService.updateReview(id, {
+        ...formData,
+        rating: Number(formData.rating),
+      });
+      setReview((current) => ({ ...current, ...updated }));
+      showToast('Review updated successfully', 'success');
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to update review', 'error');
+    } finally {
+      setUpdating(false);
+    }
+  };
   const renderStars = (rating) => {
     return (
       <div className="flex">
@@ -178,6 +201,16 @@ export default function AdminReviewDetailPage({ params }) {
             </Link>
           </div>
 
+          <form onSubmit={handleSave} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
+            <h3 className="font-bold text-gray-900">Edit Review</h3>
+            <input name="name" value={formData.name} onChange={handleEditChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Reviewer name" required />
+            <input name="email" type="email" value={formData.email} onChange={handleEditChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Reviewer email" required />
+            <select name="rating" value={formData.rating} onChange={handleEditChange} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg bg-white">
+              {[1, 2, 3, 4, 5].map((rating) => <option key={rating} value={rating}>{rating} star{rating > 1 ? 's' : ''}</option>)}
+            </select>
+            <textarea name="text" value={formData.text} onChange={handleEditChange} rows={4} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg" placeholder="Review text" required minLength={5} />
+            <Button type="submit" disabled={updating}>{updating ? 'Saving...' : 'Save Changes'}</Button>
+          </form>
           {/* Review Content */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-start justify-between">
@@ -189,7 +222,7 @@ export default function AdminReviewDetailPage({ params }) {
                 {review.title && (
                   <h3 className="font-bold text-gray-900 text-lg mt-2">{review.title}</h3>
                 )}
-                <p className="text-gray-700 mt-3 leading-relaxed">{review.comment}</p>
+                <p className="text-gray-700 mt-3 leading-relaxed">{review.text}</p>
               </div>
             </div>
 

@@ -2,9 +2,9 @@
 
 // App Constants
 export const APP = {
-  name: 'Glowly Botanical',
+  name: 'Glow  Botanical',
   tagline: 'Luxury Skincare & Beauty',
-  description: 'Glowly Botanical - Luxury Skincare & Beauty Products',
+  description: 'Glow  Botanical - Luxury Skincare & Beauty Products',
   url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   apiUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api',
   version: '1.0.0',
@@ -247,16 +247,16 @@ export const COOKIE_KEYS = {
 
 // Social Links
 export const SOCIAL = {
-  instagram: 'https://instagram.com/glowlyangel',
-  facebook: 'https://facebook.com/glowlybotanical',
-  youtube: 'https://youtube.com/glowlybotanical',
-  twitter: 'https://twitter.com/glowlybotanical',
-  tiktok: 'https://tiktok.com/@glowlybotanical',
+  instagram: 'https://instagram.com/Glow Botanical',
+  facebook: 'https://facebook.com/Glow botanical',
+  youtube: 'https://youtube.com/Glow botanical',
+  twitter: 'https://twitter.com/Glow botanical',
+  tiktok: 'https://tiktok.com/@Glow botanical',
 };
 
 // Contact Info
 export const CONTACT = {
-  email: 'hello@glowlybotanical.com',
+  email: 'hello@Glow botanical.com',
   phone: '+1 (800) 555-GLOW',
   address: '123 Beauty Lane, New York, NY 10001',
   workingHours: 'Mon-Fri: 9:00 AM - 6:00 PM EST',

@@ -72,7 +72,7 @@ export default function HomePage() {
       ) : (
         <PromoBanner
           imageUrl="/image 4.png"
-          altText="Glowly Botanical Before & After Results Banner"
+          altText="Glow  Botanical Before & After Results Banner"
         />
       )}
 
@@ -95,7 +95,7 @@ export default function HomePage() {
       ) : (
         <PromoBanner
           imageUrl="/image 5.png"
-          altText="Glowly Botanical Instagram Promo Banner"
+          altText="Glow  Botanical Instagram Promo Banner"
         />
       )}
 

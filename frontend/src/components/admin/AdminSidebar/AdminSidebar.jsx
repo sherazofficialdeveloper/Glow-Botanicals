@@ -137,7 +137,7 @@ export const AdminSidebar = () => {
             <div className="w-8 h-8 rounded-lg bg-[#d9006c] flex items-center justify-center font-bold text-sm">
               GB
             </div>
-            <span className="font-bold text-lg">Glowly</span>
+            <span className="font-bold text-lg">Glow </span>
           </Link>
         )}
         {isCollapsed && (

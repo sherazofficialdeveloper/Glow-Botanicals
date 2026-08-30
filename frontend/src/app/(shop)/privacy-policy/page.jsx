@@ -65,7 +65,7 @@ export default function PrivacyPolicyPage() {
         <p>
           If you have any questions about this Privacy Policy, please contact us at:
           <br />
-          <strong>Email:</strong> privacy@glowlybotanical.com
+          <strong>Email:</strong> privacy@Glow botanical.com
         </p>
       </div>
     </Container>

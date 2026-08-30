@@ -6,7 +6,7 @@ import Coupon from '../models/Coupon.js';
 import Settings from '../models/Settings.js';
 import { AppError } from '../utils/error.js';
 import logger from '../utils/logger.js';
-import { sendOrderConfirmation } from './emailService.js';
+import { sendOrderConfirmationInBackground, sendOrderCompletedInBackground } from './emailService.js';
 import { isValidPaymentMethod } from '../config/payment.js';
 
 const assertOrderAccess = (order, user, { adminOnly = false } = {}) => {
@@ -142,11 +142,7 @@ export const createOrder = async (orderData, user) => {
     await coupon.save();
   }
 
-  try {
-    await sendOrderConfirmation(order, user || { name, email });
-  } catch (emailError) {
-    logger.error(`Order confirmation email failed: ${emailError.message}`);
-  }
+  sendOrderConfirmationInBackground(order, user || { name, email });
 
   return order;
 };
@@ -195,8 +191,14 @@ export const updateOrderStatus = async (orderId, status, user) => {
   }
   assertOrderAccess(order, user, { adminOnly: true });
 
+  const previousStatus = order.status;
   order.status = status;
   await order.save();
+
+  if (previousStatus !== 'delivered' && status === 'delivered') {
+    sendOrderCompletedInBackground(order, { email: order.customerEmail, name: order.customerName });
+  }
+
   return order;
 };
 

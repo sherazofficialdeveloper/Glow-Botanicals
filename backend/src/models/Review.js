@@ -68,6 +68,12 @@ const reviewSchema = new mongoose.Schema(
       index: true,
     },
 
+    isRejected: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+
     helpful: {
       type: Number,
       default: 0,

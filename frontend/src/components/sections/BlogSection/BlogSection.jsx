@@ -13,7 +13,7 @@ export const BlogSection = ({ className = '' }) => {
   return (
     <section id="blog" className={`py-16 lg:py-24 bg-white relative ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <SectionHeader badge="Glowly Blog" title="Skincare & Wellness Insights" subtitle="Tips, guides, and stories from our skincare experts" />
+        <SectionHeader badge="Glow  Blog" title="Skincare & Wellness Insights" subtitle="Tips, guides, and stories from our skincare experts" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {posts.slice(0, 3).map((post) => (
             <Link key={post._id} href={`/blog/${post.slug}`} className="group bg-white rounded-2xl border border-rose-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden">

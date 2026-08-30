@@ -34,9 +34,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.push(user?.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+      const redirect = searchParams.get('redirect');
+      const isSafeRedirect = redirect?.startsWith('/') && !redirect.startsWith('//');
+      router.replace(user?.role === 'admin' ? (isSafeRedirect ? redirect : '/admin') : '/dashboard');
     }
-  }, [isAuthenticated, user, router]);
+  }, [isAuthenticated, user, router, searchParams]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -75,7 +77,9 @@ export default function LoginPage() {
       const result = await login(formData.email, formData.password);
       if (result.success) {
         showToast('Welcome back! 🎉', 'success');
-        router.push(result.user?.role === 'admin' ? '/admin/dashboard' : '/dashboard');
+        const redirect = searchParams.get('redirect');
+        const isSafeRedirect = redirect?.startsWith('/') && !redirect.startsWith('//');
+        router.replace(result.user?.role === 'admin' ? (isSafeRedirect ? redirect : '/admin') : '/dashboard');
       } else {
         setServerError(result.error || 'Invalid email or password. Please try again.');
         showToast(result.error || 'Login failed', 'error');
@@ -94,7 +98,7 @@ export default function LoginPage() {
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Welcome Back</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Sign in to your Glowly Botanical account
+          Sign in to your Glow  Botanical account
         </p>
       </div>
 

@@ -56,7 +56,7 @@ export const ContactSection = ({ className = '' }) => {
                   </div>
                   <div>
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email</p>
-                    <p className="text-sm font-medium text-gray-900">hello@glowlybotanical.com</p>
+                    <p className="text-sm font-medium text-gray-900">hello@Glow botanical.com</p>
                   </div>
                 </div>
                 

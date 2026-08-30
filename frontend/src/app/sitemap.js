@@ -3,7 +3,7 @@ import { productService } from '@/services/productService';
 import { blogService } from '@/services/blogService';
 
 export default async function sitemap() {
-  const baseUrl = 'https://glowlybotanical.com';
+  const baseUrl = 'https://Glow botanical.com';
 
   // Static routes
   const staticRoutes = [

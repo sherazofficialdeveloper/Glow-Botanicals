@@ -1,8 +1,8 @@
 {
-  "name": "glowly-frontend",
+  "name": "Glow -frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "Glowly Botanical - Luxury Skincare & Beauty E-commerce",
+  "description": "Glow  Botanical - Luxury Skincare & Beauty E-commerce",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

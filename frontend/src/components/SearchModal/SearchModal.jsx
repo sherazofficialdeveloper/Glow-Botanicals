@@ -429,7 +429,7 @@ export const SearchModal = ({ isOpen, onClose }) => {
               <span>Press <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-mono">Esc</kbd> to close</span>
               <span>Use <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-mono">↑</kbd> <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-[10px] font-mono">↓</kbd> to navigate</span>
             </div>
-            <span className="text-[#d9006c] font-semibold">✨ Glowly Botanical</span>
+            <span className="text-[#d9006c] font-semibold">✨ Glow  Botanical</span>
           </div>
         </div>
 

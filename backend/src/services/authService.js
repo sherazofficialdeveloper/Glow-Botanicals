@@ -8,7 +8,7 @@ import { comparePassword } from '../utils/password.js';
 import { AppError } from '../utils/error.js';
 import logger from '../utils/logger.js';
 import { normalizeEmail } from '../utils/helpers.js';
-import { sendOTPEmail, sendPasswordResetEmail } from './emailService.js';
+import { sendOTPEmail, sendPasswordResetEmail, sendWelcomeEmailInBackground, sendLoginNotificationInBackground } from './emailService.js';
 import { deleteImage } from '../utils/cloudinaryUpload.js';
 
 const validateUserId = (userId) => {
@@ -111,6 +111,8 @@ export const registerUser = async (userData) => {
 
     await user.save();
 
+    sendWelcomeEmailInBackground(user);
+
     const token = generateToken({
       id: user._id,
       email: user.email,
@@ -184,6 +186,8 @@ export const loginUser = async (
     user.lastLogin = new Date();
 
     await user.save();
+
+    sendLoginNotificationInBackground(user);
 
     const token = generateToken({
       id: user._id,

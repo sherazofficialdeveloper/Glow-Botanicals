@@ -8,8 +8,8 @@ const nextConfig = {
   images: {
     domains: [
       'localhost',
-      'glowlybotanical.com',
-      'api.glowlybotanical.com',
+      'Glow botanical.com',
+      'api.Glow botanical.com',
       'images.unsplash.com',
       'res.cloudinary.com',
       's3.amazonaws.com',

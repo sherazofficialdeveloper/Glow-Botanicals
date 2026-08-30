@@ -16,14 +16,6 @@ const publicRoutes = [
   '/terms',
 ];
 
-const authRoutes = [
-  '/login',
-  '/register',
-  '/forgot-password',
-  '/reset-password',
-  '/verify-email',
-];
-
 const protectedRoutes = [
   '/dashboard',
   '/dashboard/:path*',
@@ -38,11 +30,6 @@ const protectedRoutes = [
   '/checkout/:path*',
 ];
 
-const adminRoutes = [
-  '/admin',
-  '/admin/:path*',
-];
-
 export function middleware(request) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('accessToken')?.value;
@@ -53,16 +40,6 @@ export function middleware(request) {
     pathname === route || pathname.startsWith(route.replace(':path*', ''))
   );
 
-  // Check if route is auth route
-  const isAuthRoute = authRoutes.some(route => 
-    pathname === route || pathname.startsWith(route)
-  );
-
-  // Check if route is admin
-  const isAdminRoute = adminRoutes.some(route => 
-    pathname === route || pathname.startsWith(route.replace(':path*', ''))
-  );
-
   // If accessing protected route without token, redirect to login
   if (isProtectedRoute && !isAuthenticated) {
     const loginUrl = new URL('/login', request.url);
@@ -70,18 +47,10 @@ export function middleware(request) {
     return NextResponse.redirect(loginUrl);
   }
 
-  // If accessing admin route without token, redirect to login
-  if (isAdminRoute && !isAuthenticated) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // If accessing auth route with token, redirect to dashboard
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
-  }
-
+  // Admin redirects are handled after AuthProvider verifies the existing bearer
+  // token with the API. The browser session is stored in localStorage for the
+  // API interceptor, so a cookie-presence check cannot establish that a
+  // session is valid or that the user is an admin.
   // For protected routes with token, ensure token is valid
   if (isProtectedRoute && isAuthenticated) {
     // Check if token is expired by making a request to /auth/me

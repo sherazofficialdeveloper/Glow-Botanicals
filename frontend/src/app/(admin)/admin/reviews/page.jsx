@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Check, X, Star, User, Plus } from 'lucide-react';
+import { Check, X, Star, User, Plus, Pencil, Trash2 } from 'lucide-react';
 import { DataTable } from '@/components/admin/DataTable';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
@@ -18,6 +18,7 @@ export default function AdminReviewsPage() {
     page,
     limit: 10,
     status: filter,
+    admin: true,
   });
   const { showToast } = useToast();
 
@@ -41,6 +42,17 @@ export default function AdminReviewsPage() {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this review permanently?')) return;
+
+    try {
+      await reviewService.deleteReview(id);
+      showToast('Review deleted successfully', 'success');
+      refetch();
+    } catch (error) {
+      showToast(error.response?.data?.message || 'Failed to delete review', 'error');
+    }
+  };
   const columns = [
     {
       key: 'user',
@@ -90,8 +102,8 @@ export default function AdminReviewsPage() {
       label: 'Review',
       render: (row) => (
         <div>
-          <p className="text-sm text-gray-900 font-medium">{row.title}</p>
-          <p className="text-xs text-gray-500 line-clamp-2">{row.comment}</p>
+          <p className="text-sm text-gray-900 font-medium">{row.text}</p>
+          <p className="text-xs text-gray-500 line-clamp-2">{row.text}</p>
         </div>
       ),
     },
@@ -121,32 +133,23 @@ export default function AdminReviewsPage() {
       key: 'actions',
       label: 'Actions',
       render: (row) => {
-        if (row.isApproved || row.isRejected) {
-          return (
-            <button
-              onClick={() => handleApprove(row._id)}
-              className="px-3 py-1 text-xs font-medium text-gray-400 cursor-not-allowed"
-              disabled
-            >
-              {row.isApproved ? '✓ Approved' : '✗ Rejected'}
-            </button>
-          );
-        }
         return (
           <div className="flex items-center space-x-2">
-            <button
-              onClick={() => handleApprove(row._id)}
-              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
-              title="Approve"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => handleReject(row._id)}
-              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-              title="Reject"
-            >
-              <X className="w-4 h-4" />
+            {!row.isApproved && !row.isRejected && (
+              <>
+                <button onClick={() => handleApprove(row._id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Approve">
+                  <Check className="w-4 h-4" />
+                </button>
+                <button onClick={() => handleReject(row._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Reject">
+                  <X className="w-4 h-4" />
+                </button>
+              </>
+            )}
+            <Link href={`/admin/reviews/${row._id}`} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit review">
+              <Pencil className="w-4 h-4" />
+            </Link>
+            <button onClick={() => handleDelete(row._id)} className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Delete review">
+              <Trash2 className="w-4 h-4" />
             </button>
           </div>
         );

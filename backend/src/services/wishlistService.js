@@ -81,6 +81,7 @@ export const toggleWishlist = async (userId, productId) => {
         : 'Product removed from your wishlist.',
       isAdded,
       totalItems: wishlist.items.length,
+      product: { name: product.name },
     };
   } catch (error) {
     logger.error('Toggle wishlist service error:', error);

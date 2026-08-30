@@ -2,19 +2,25 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 
 export default function AuthLayout({ children }) {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (!loading && isAuthenticated) {
-      router.push('/dashboard');
+      const redirect = searchParams.get('redirect');
+      const isSafeRedirect = redirect?.startsWith('/') && !redirect.startsWith('//');
+      const destination = user?.role === 'admin'
+        ? (isSafeRedirect ? redirect : '/admin')
+        : '/dashboard';
+      router.replace(destination);
     }
-  }, [loading, isAuthenticated, router]);
+  }, [loading, isAuthenticated, router, searchParams, user]);
 
   if (loading) {
     return (
@@ -35,7 +41,7 @@ export default function AuthLayout({ children }) {
         <div className="text-center mb-8">
           <img
             src="/logo.jpeg"
-            alt="Glowly Botanical"
+            alt="Glow  Botanical"
             className="h-12 mx-auto object-contain"
             onError={(e) => {
               e.target.src = '/images/logo-placeholder.png';
@@ -54,7 +60,7 @@ export default function AuthLayout({ children }) {
         {/* Footer */}
         <div className="text-center mt-6">
           <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} Glowly Botanical. All rights reserved.
+            © {new Date().getFullYear()} Glow  Botanical. All rights reserved.
           </p>
         </div>
       </div>

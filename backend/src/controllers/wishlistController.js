@@ -2,6 +2,7 @@
 
 import catchAsync from '../utils/catchAsync.js';
 import * as wishlistService from '../services/wishlistService.js';
+import { sendFavoriteAddedInBackground } from '../services/emailService.js';
 
 export const getWishlist = catchAsync(async (req, res) => {
   const wishlist = await wishlistService.getWishlist(req.user.id);
@@ -16,6 +17,10 @@ export const getWishlist = catchAsync(async (req, res) => {
 
 export const toggleWishlist = catchAsync(async (req, res) => {
   const result = await wishlistService.toggleWishlist(req.user.id, req.body.productId);
+
+  if (result.isAdded) {
+    sendFavoriteAddedInBackground(req.user, result.product);
+  }
   res.json({
     success: true,
     message: result.isAdded ? 'Added to wishlist' : 'Removed from wishlist',

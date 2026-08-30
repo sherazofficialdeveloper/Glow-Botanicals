@@ -1,4 +1,4 @@
-# CutiesGlow Backend API
+# Glow BotanicalBackend API
 
 ## 🚀 Getting Started
 

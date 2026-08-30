@@ -11,6 +11,7 @@ import Review from '../models/Review.js';
 
 import { AppError } from '../utils/error.js';
 import logger from '../utils/logger.js';
+import { sendOrderCompletedInBackground } from './emailService.js';
 // ============================================================
 // HELPERS
 // ============================================================
@@ -705,6 +706,13 @@ export const updateOrderStatus =
     }
 
     await order.save();
+
+    if (oldStatus !== 'delivered' && status === 'delivered') {
+      sendOrderCompletedInBackground(order, {
+        email: order.customerEmail,
+        name: order.customerName,
+      });
+    }
 
     logger.info(
       `Order ${order.orderNumber} status changed from ${oldStatus} to ${status}`

@@ -199,7 +199,7 @@ export default function AboutPage() {
           </h2>
           
           <p className="text-gray-600 leading-relaxed text-base sm:text-lg mb-4">
-            Glowly Botanical was born from a simple idea: skincare should be effective, 
+            Glow  Botanical was born from a simple idea: skincare should be effective, 
             safe, and enjoyable. We combine traditional botanical wisdom with modern 
             science to create products that truly work.
           </p>
@@ -231,7 +231,7 @@ export default function AboutPage() {
               <div className="aspect-[4/3] rounded-2xl overflow-hidden bg-gradient-to-br from-[#d9006c]/10 to-[#d4af37]/10 flex items-center justify-center">
                 <img
                   src="/WhatsApp_Image_2025-09-06_at_12.08.36_AM.jpg"
-                  alt="About Glowly Botanical"
+                  alt="About Glow  Botanical"
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.src = '/images/placeholder-about.jpg';

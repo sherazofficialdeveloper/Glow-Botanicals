@@ -258,10 +258,19 @@ export const getAdminReviews = async (filters = {}) => {
     const filter = {};
 
     if (status && status !== 'all') {
-      if (!['approved', 'pending'].includes(status)) {
+      if (!['approved', 'pending', 'rejected'].includes(status)) {
         throw new AppError('Invalid review status', 400);
       }
-      filter.isApproved = status === 'approved';
+      if (status === 'approved') {
+        filter.isApproved = true;
+        filter.isRejected = { $ne: true };
+      } else if (status === 'rejected') {
+        filter.isApproved = false;
+        filter.isRejected = true;
+      } else {
+        filter.isApproved = false;
+        filter.isRejected = { $ne: true };
+      }
     }
 
     if (productId) {
@@ -289,8 +298,14 @@ export const getAdminReviews = async (filters = {}) => {
       Review.countDocuments(filter),
     ]);
 
+    const items = reviews.map((review) => ({
+      ...review,
+      product: review.productId,
+      user: review.userId,
+    }));
+
     return {
-      items: reviews,
+      items,
       totalCount,
       totalPages: Math.ceil(totalCount / perPage),
       currentPage,
@@ -318,7 +333,11 @@ export const getAdminReview = async (reviewId) => {
       throw new AppError('Review not found', 404);
     }
 
-    return review;
+    const item = review.toObject();
+    item.product = item.productId;
+    item.user = item.userId;
+
+    return item;
   } catch (error) {
     logger.error('Get admin review service error:', error);
     throw error;
@@ -380,6 +399,7 @@ export const createAdminReview = async (data) => {
       rating: Number(rating),
       text: text.trim(),
       isApproved: Boolean(isApproved),
+      isRejected: false,
       images: Array.isArray(images) ? images : [],
     });
 
@@ -449,6 +469,12 @@ export const updateReview = async (reviewId, data) => {
 
     if (isApproved !== undefined) {
       review.isApproved = Boolean(isApproved);
+      if (review.isApproved) review.isRejected = false;
+    }
+
+    if (data.isRejected !== undefined) {
+      review.isRejected = Boolean(data.isRejected);
+      if (review.isRejected) review.isApproved = false;
     }
 
     if (images !== undefined) {
@@ -488,6 +514,7 @@ export const approveReview = async (reviewId) => {
     }
 
     review.isApproved = true;
+    review.isRejected = false;
     await review.save();
 
     await recalculateProductRating(review.productId);
@@ -517,6 +544,7 @@ export const unapproveReview = async (reviewId) => {
     }
 
     review.isApproved = false;
+    review.isRejected = false;
     await review.save();
 
     await recalculateProductRating(review.productId);
@@ -528,6 +556,31 @@ export const unapproveReview = async (reviewId) => {
   }
 };
 
+// ============================================================
+// ADMIN: REJECT REVIEW
+// ============================================================
+
+export const rejectReview = async (reviewId) => {
+  try {
+    validateObjectId(reviewId, 'review ID');
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      throw new AppError('Review not found', 404);
+    }
+
+    review.isApproved = false;
+    review.isRejected = true;
+    await review.save();
+
+    await recalculateProductRating(review.productId);
+
+    return review;
+  } catch (error) {
+    logger.error('Reject review service error:', error);
+    throw error;
+  }
+};
 // ============================================================
 // ADMIN: DELETE REVIEW
 // ============================================================
@@ -570,5 +623,6 @@ export default {
   updateReview,
   approveReview,
   unapproveReview,
+  rejectReview,
   deleteReview,
 };

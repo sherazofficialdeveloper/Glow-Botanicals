@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { LoadingSpinner } from '@/components/common/LoadingSpinner';
@@ -10,16 +10,17 @@ import { LoadingSpinner } from '@/components/common/LoadingSpinner';
 export default function AdminLayout({ children }) {
   const { user, isAuthenticated, isAdmin, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!loading) {
       if (!isAuthenticated) {
-        router.push('/login');
+        router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
       } else if (!isAdmin) {
-        router.push('/dashboard');
+        router.replace('/dashboard');
       }
     }
-  }, [loading, isAuthenticated, isAdmin, router]);
+  }, [loading, isAuthenticated, isAdmin, pathname, router]);
 
   if (loading) {
     return (

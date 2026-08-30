@@ -117,7 +117,7 @@ export default function GeneralSettingsPage() {
               name="storeName"
               value={formData.storeName}
               onChange={handleChange}
-              placeholder="Glowly Botanical"
+              placeholder="Glow  Botanical"
               error={errors.storeName}
             />
           </div>
@@ -145,7 +145,7 @@ export default function GeneralSettingsPage() {
               type="email"
               value={formData.storeEmail}
               onChange={handleChange}
-              placeholder="hello@glowlybotanical.com"
+              placeholder="hello@Glow botanical.com"
               error={errors.storeEmail}
             />
           </div>

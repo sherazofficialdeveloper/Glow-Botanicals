@@ -99,6 +99,17 @@ export const approveReview = catchAsync(async (req, res) => {
   });
 });
 
+export const rejectReview = catchAsync(async (req, res) => {
+  const review = await reviewService.rejectReview(req.params.id);
+  res.json({
+    success: true,
+    message: 'Review rejected successfully',
+    data: review,
+  });
+});
+
+
+
 export const unapproveReview = catchAsync(async (req, res) => {
   const review = await reviewService.unapproveReview(req.params.id);
   res.json({
@@ -128,5 +139,6 @@ export default {
   updateReview,
   approveReview,
   unapproveReview,
+  rejectReview,
   deleteReview,
 };

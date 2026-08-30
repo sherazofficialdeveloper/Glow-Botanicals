@@ -7,6 +7,9 @@ import {
   welcomeEmailTemplate,
   orderConfirmationTemplate,
   passwordResetLinkTemplate,
+  loginNotificationTemplate,
+  favoriteAddedTemplate,
+  orderCompletedTemplate,
 } from '../utils/emailTemplates.js';
 
 const sendSafely = async (payload) => {
@@ -18,6 +21,13 @@ const sendSafely = async (payload) => {
   }
 };
 
+const sendInBackground = (eventName, send) => {
+  setImmediate(() => {
+    send().catch((error) => {
+      logger.error(`${eventName} email failed: ${error.message}`);
+    });
+  });
+};
 export const sendOTPEmail = async (user, otp) => {
   const template = passwordResetOtpTemplate(user, otp);
   return sendSafely({
@@ -57,3 +67,26 @@ export default {
   sendOrderConfirmation,
   sendPasswordResetEmail,
 };
+export const sendWelcomeEmailInBackground = (user) =>
+  sendInBackground('Welcome', () => sendWelcomeEmail(user));
+
+export const sendLoginNotificationInBackground = (user) =>
+  sendInBackground('Login notification', async () => {
+    const template = loginNotificationTemplate(user);
+    return sendSafely({ to: user.email, ...template });
+  });
+
+export const sendFavoriteAddedInBackground = (user, product) =>
+  sendInBackground('Favorite notification', async () => {
+    const template = favoriteAddedTemplate(user, product);
+    return sendSafely({ to: user.email, ...template });
+  });
+
+export const sendOrderConfirmationInBackground = (order, user) =>
+  sendInBackground('Order confirmation', () => sendOrderConfirmation(order, user));
+
+export const sendOrderCompletedInBackground = (order, user) =>
+  sendInBackground('Order completion', async () => {
+    const template = orderCompletedTemplate(order, user);
+    return sendSafely({ to: user?.email || order.customerEmail, ...template });
+  });

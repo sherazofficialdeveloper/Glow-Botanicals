@@ -12,6 +12,7 @@ import {
   updateReview,
   approveReview,
   unapproveReview,
+  rejectReview,
   deleteReview,
 } from '../controllers/reviewController.js';
 
@@ -138,6 +139,7 @@ router.get(
         'all',
         'pending',
         'approved',
+        'rejected',
       ])
       .withMessage(
         'Invalid review status'
@@ -352,7 +354,7 @@ router.put(
         'Invalid review ID'
       ),
   ]),
-  unapproveReview
+  rejectReview
 );
 
 // Delete

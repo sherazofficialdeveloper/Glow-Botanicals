@@ -50,7 +50,7 @@ export default function DashboardPage() {
               Welcome back, {user?.name?.split(' ')[0] || 'Customer'}! 👋
             </h1>
             <p className="text-sm text-gray-600 mt-1">
-              Here's what's happening with your Glowly Botanical journey.
+              Here's what's happening with your Glow  Botanical journey.
             </p>
           </div>
           <Link
@@ -132,7 +132,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center space-x-2">
               <Sparkles className="w-5 h-5 text-[#d4af37]" />
-              <h4 className="font-bold text-gray-900">Glowly Member</h4>
+              <h4 className="font-bold text-gray-900">Glow  Member</h4>
             </div>
             <p className="text-sm text-gray-600 mt-1">
               You're earning points on every purchase. 

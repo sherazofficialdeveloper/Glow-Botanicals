@@ -198,7 +198,7 @@ export const ShoppableReels = ({
         <div className="text-center mb-8">
           <span className="inline-flex gap-2 text-[#d9006c] text-xs font-bold">
             <Instagram className="w-4" />
-            @GlowlyAngel
+            @Glow Botanical
           </span>
           <h2 className="text-2xl sm:text-3xl font-extrabold">
             Follow On Instagram

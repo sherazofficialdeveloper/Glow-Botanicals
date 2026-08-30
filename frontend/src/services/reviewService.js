@@ -66,6 +66,10 @@ export const reviewService = {
   async unapproveReview(id) {
     const response = await api.put(`/reviews/admin/${id}/unapprove`);
     return response.data.data;
+  },  // Admin: Reject review
+  async rejectReview(id) {
+    const response = await api.put(`/reviews/admin/${id}/reject`);
+    return response.data.data;
   },
 
   // Admin: Delete review

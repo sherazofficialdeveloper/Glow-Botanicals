@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
             setEmail(e.target.value);
             setError('');
           }}
-          placeholder="hello@glowlybotanical.com"
+          placeholder="hello@Glow botanical.com"
           error={error}
           icon={<Mail className="w-4 h-4 text-gray-400" />}
           required

@@ -69,7 +69,7 @@ export const Footer = () => {
           <div className="lg:col-span-4 space-y-4">
             <img
               src="/logo.png"
-              alt="Glowly Botanical"
+              alt="Glow  Botanical"
               className="h-32 w-auto object-contain"
               onError={(e) => {
                 e.target.src = '/images/logo-placeholder.png';
@@ -144,7 +144,7 @@ export const Footer = () => {
               Sign Up & Save 15%
             </h4>
             <p className="text-xs text-gray-600 font-medium">
-              Get an exclusive 15% discount on your first Glowly Botanical order.
+              Get an exclusive 15% discount on your first Glow  Botanical order.
             </p>
 
             {subscribed ? (
@@ -186,7 +186,7 @@ export const Footer = () => {
       <div className="border-t border-rose-200/80 bg-rose-100/30 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-600 gap-4">
           <p className="font-semibold text-center sm:text-left">
-            © {new Date().getFullYear()} Glowly Botanical. All Rights Reserved.
+            © {new Date().getFullYear()} Glow  Botanical. All Rights Reserved.
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4 font-medium text-gray-500">
             <Link href="/privacy-policy" className="hover:text-[#d9006c] transition-colors">

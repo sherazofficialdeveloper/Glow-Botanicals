@@ -20,12 +20,17 @@ export const useReviews = (options = {}) => {
     setError(null);
     
     try {
-      const response = await reviewService.getReviews({
+      const request = {
         page: params.page || 1,
         limit: params.limit || 10,
         productId: params.productId,
-        approved: params.approved !== undefined ? params.approved : true,
-      });
+      };
+
+      if (params.status) request.status = params.status;
+
+      const response = params.admin
+        ? await reviewService.getAdminReviews(request)
+        : await reviewService.getReviews(request);
       
       setReviews(response.items || []);
       setPagination({

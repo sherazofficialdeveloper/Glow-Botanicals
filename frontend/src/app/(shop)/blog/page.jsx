@@ -46,7 +46,7 @@ export default function BlogPage() {
   return (
     <Container className="py-8 sm:py-12">
       <SectionHeader
-        title="Glowly Blog"
+        title="Glow  Blog"
         subtitle="Tips, guides, and stories from our skincare experts"
         align="center"
       />
